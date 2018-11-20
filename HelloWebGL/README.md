@@ -14,7 +14,9 @@
 Goal of this project is to get a hello world WebGL from your home PC to your mobile phone. This was done on a Window 10 PC for development. Android Pixel 3 XL with a Chrome browser.
 
 ## How to
-#### 1. Create a python http server 
+
+<a name="create_server"></a>
+#### 1. Create a python http server
 
 ``` python
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -34,6 +36,7 @@ if __name__ == '__main__':
    httpd.serve_forever()
 ```
 
+<a name="create_content"></a>
 #### 2. Create your WebGL content
 
 ``` html
@@ -76,6 +79,7 @@ if __name__ == '__main__':
 </html>
 ```
 
+<a name="find_ip_address"></a>
 #### 3. Find your computer ip address (Windows PowerShell)
 
 ```
@@ -91,6 +95,7 @@ Wireless LAN adapter Wi-Fi:
 ...
 ```
 
+<a name="view_results"></a>
 #### 4. View results on phone
 From your mobile device add the ip address into your browser followed by the port
 E.g., 192.168.154.123:8000
