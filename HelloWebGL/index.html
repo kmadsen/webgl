@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>WebGL Demo</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="../webgl.css" type="text/html">
+  </head>
+
+  <body>
+    <canvas id="glcanvas"/>
+  </body>
+
+  <script
+    src="https://code.jquery.com/jquery-3.3.1.min.js"
+    integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous">
+  </script>
+
+  <script>
+    main();
+    
+    function main() {
+      const canvas = document.getElementById("glcanvas");
+      const gl = canvas.getContext("webgl");
+      resize(gl)
+      if (!gl) {
+        alert("Your browser may not support WebGL.");
+        return;
+      }
+
+      gl.clearColor(0.18, 0.55, 0.34, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+    }
+
+    function resize(gl) {
+      gl.canvas.width = $(window).width();
+      gl.canvas.height = $(window).height();
+    }
+  </script>
+</html>
