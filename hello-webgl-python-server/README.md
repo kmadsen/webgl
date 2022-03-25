@@ -1,6 +1,5 @@
 # Hello WebGL
 
-
 - [Summary](#summary)
 - [How to](#how_to)
   * [1. Create a python http server](#create_server)
@@ -80,8 +79,24 @@ if __name__ == '__main__':
 ```
 
 <a name="find_ip_address"></a>
-#### 3. Find your computer ip address (Windows PowerShell)
+#### 3. Find your computer ip address 
 
+(Linux)
+```
+$ ifconfig
+enp4s0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 192.168.1.10  netmask 255.255.255.0  broadcast 192.168.1.255
+        inet6 fe80::347e:d2d1:1871:aa1c  prefixlen 64  scopeid 0x20<link>
+        inet6 2604:5500:c004:f900:c589:a1d2:4a08:7cb  prefixlen 64  scopeid 0x0<global>
+        ether 40:8d:5c:e3:7d:02  txqueuelen 1000  (Ethernet)
+        RX packets 31738731  bytes 38001886045 (35.3 GiB)
+        RX errors 0  dropped 916  overruns 0  frame 0
+        TX packets 7855912  bytes 1593862791 (1.4 GiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+        device interrupt 18  
+```
+
+(Windows PowerShell)
 ```
 >> ipconfig
 ...
