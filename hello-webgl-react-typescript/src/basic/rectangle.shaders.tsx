@@ -1,25 +1,29 @@
-const defaultColor: Array<number> = [1.0, 1.0, 0.0, 1.0]
-
 export const vertSource = () => {
   return `
   #version 300 es
   precision mediump float;
   
   in vec3 aVertexPosition;
+  in vec3 aVertexColor;
+
+  out vec3 vColor;
   
   void main(void) {
+    vColor = aVertexColor;
     gl_Position = vec4(aVertexPosition, 1.0);
   }`;
 };
 
-export const fragSource = (color: Array<number> = defaultColor) => {
+export const fragSource = () => {
   return `
   #version 300 es
   precision mediump float;
   
+  in vec3 vColor;
+
   out vec4 fragColor;
   
   void main(void) {
-    fragColor = vec4(${color.join(",")});
+    fragColor = vec4(vColor, 1.0);
   }`;
 };

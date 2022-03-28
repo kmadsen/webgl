@@ -1,3 +1,4 @@
+import * as shader from './shader';
 import { vertSource, fragSource } from './triangle.shaders'
 
 class TriangleRenderer {
@@ -11,6 +12,35 @@ class TriangleRenderer {
   constructor(canvas: HTMLCanvasElement, gl: WebGL2RenderingContext) {
     this.canvas = canvas;
     this.gl = gl;
+
+    const program = this.program = this.initProgram();
+    if (!program) {
+      // Error log in initProgram
+      return;
+    }
+  }
+
+  public render() {
+    const gl = this.gl;
+    const program = this.program;
+    
+    gl.useProgram(program);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ibo);
+    gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+  }
+  
+  public dispose() {
+    this.gl.deleteProgram(this.program);
+    this.gl.deleteBuffer(this.vbo);
+    this.gl.deleteBuffer(this.ibo);
+  }
+
+  private initProgram(): WebGLProgram | null {
+    const gl = this.gl;
 
     const vertices = [
       -0.5, -0.5, 0,
@@ -33,34 +63,21 @@ class TriangleRenderer {
     
     if (!this.vbo || !this.ibo) {
       console.error('Unable to initialize buffers');
-      return;
+      return null;
     }
-
-    const program = this.program = this.initProgram();
-    if (!program) {
-      // Error log in initProgram
-      return;
-    }
-  }
-
-  private initProgram(): WebGLProgram | null {
-    const gl = this.gl;
 
     const program: WebGLProgram | null = gl.createProgram();
     if (!program) {
       console.error("Could not create program")
       return null;
     }
-    const vertShader = this.prepareShader(
-      gl,
-      gl.VERTEX_SHADER,
-      vertSource()
-    );
+
+    const vertShader = shader.prepare(gl, gl.VERTEX_SHADER, vertSource());
     if (!vertShader) {
       // Error log assumed in prepareShader function
       return null;
     }
-    const fragShader = this.prepareShader(gl, gl.FRAGMENT_SHADER, fragSource(
+    const fragShader = shader.prepare(gl, gl.FRAGMENT_SHADER, fragSource(
       [1.0, 0.0, 1.0, 1.0]
     ));
     if (!fragShader) {
@@ -85,62 +102,9 @@ class TriangleRenderer {
     const aVertexPosition: GLint = gl.getAttribLocation(program, 'aVertexPosition');
     gl.vertexAttribPointer(aVertexPosition, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(aVertexPosition);
-    this.logAttributes(gl, program);
+    shader.logAttributes(gl, program);
   
     return program;
-  }
-
-  public render() {
-    const gl = this.gl;
-    const program = this.program;
-    
-    gl.useProgram(program);
-
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ibo);
-    gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-  }
-  
-  public dispose() {
-    this.gl.deleteProgram(this.program);
-    this.gl.deleteBuffer(this.vbo);
-    this.gl.deleteBuffer(this.ibo);
-  }
-
-  prepareShader(
-    gl: WebGL2RenderingContext,
-    shaderType: GLenum,
-    source: string
-  ): WebGLShader | null {
-    const shader = gl.createShader(shaderType);
-    if (!shader) {
-      console.error("Could not create shader")
-      return null;
-    }
-  
-    gl.shaderSource(shader, source.trim());
-    gl.compileShader(shader);
-  
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      console.error(gl.getShaderInfoLog(shader));
-      console.log(source);
-      return null;
-    }
-  
-    return shader;
-  }
-  
-  logAttributes(
-    gl: WebGL2RenderingContext,
-    program: WebGLProgram
-  ) {
-    const attributeCount: number = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
-    for (let i = 0; i < attributeCount; i++) {
-      const attributeInfo: WebGLActiveInfo | null = gl.getActiveAttrib(program, i);
-      console.log(attributeInfo);
-    }
   }
 }
 
