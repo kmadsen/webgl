@@ -1,24 +1,14 @@
 import * as shader from './shader'
-import { vertSource, fragSource } from './rectangle.shaders';
+import { vertSource, fragSource } from './model.shaders';
+import Circle2D from './model.circle';
 import { viewport } from './basic.camera';
 
-class RectangleRenderer {
+class ModelRenderer {
   canvas: HTMLCanvasElement
   gl: WebGL2RenderingContext
 
-  FBYTES = 4;
-  stride = 6;
-  vertices = [
-    -0.5,  0.5, 0, 0.5, 0.5, 0.0,
-    -0.5, -0.5, 0, 0.0, 0.5, 0.5,
-     0.5, -0.5, 0, 0.5, 0.0, 0.5,
-     0.5,  0.5, 0, 0.5, 0.0, 0.0
-  ];
-  indices = [
-    0, 1, 2,
-    0, 2, 3
-  ];
-  
+  model: Circle2D
+
   program: WebGLProgram | null = null;
   vao: WebGLVertexArrayObject | null = null;
   vbo: WebGLBuffer | null = null;
@@ -27,9 +17,11 @@ class RectangleRenderer {
   constructor(canvas: HTMLCanvasElement, gl: WebGL2RenderingContext) {
     this.canvas = canvas;
     this.gl = gl;
+    
+    this.model = new Circle2D(0.5, 30);
 
     viewport(gl, canvas);
-    
+
     const program = this.program = this.initProgram();
     if (!program) {
       // Error log in initProgram
@@ -44,7 +36,12 @@ class RectangleRenderer {
 
     gl.bindVertexArray(this.vao);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ibo);
-    gl.drawElements(gl.TRIANGLES, this.indices.length, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(
+      this.model.getDrawMode(gl),
+      this.model.indices.length,
+      gl.UNSIGNED_SHORT,
+      0
+    );
     
     gl.bindVertexArray(null);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
@@ -74,7 +71,7 @@ class RectangleRenderer {
       return null;
     }
     gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, this.model.vertices, gl.STATIC_DRAW);
 
     const program: WebGLProgram | null = gl.createProgram();
     if (!program) {
@@ -101,18 +98,14 @@ class RectangleRenderer {
     gl.deleteShader(vertShader);
     gl.deleteShader(fragShader);
 
-    const vaoStride = this.FBYTES * this.stride;
+    const vaoStride = this.model.FBYTES * this.model.STRIDE;
     const aVertexPosition: GLint = gl.getAttribLocation(program, 'aVertexPosition');
     gl.enableVertexAttribArray(aVertexPosition);
-    gl.vertexAttribPointer(aVertexPosition, 3, gl.FLOAT, false, vaoStride, this.FBYTES * 0);
-
-    const aVertexColor: GLint = gl.getAttribLocation(program, 'aVertexColor');
-    gl.enableVertexAttribArray(aVertexColor);
-    gl.vertexAttribPointer(aVertexColor, 3, gl.FLOAT, false, vaoStride, this.FBYTES * 3);
+    gl.vertexAttribPointer(aVertexPosition, 3, gl.FLOAT, false, vaoStride, this.model.FBYTES * 0);
 
     const ibo: WebGLBuffer | null = this.ibo = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), gl.STATIC_DRAW);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.model.indices, gl.STATIC_DRAW);
 
     gl.bindVertexArray(null);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
@@ -124,4 +117,4 @@ class RectangleRenderer {
   }
 }
 
-export default RectangleRenderer;
+export default ModelRenderer;

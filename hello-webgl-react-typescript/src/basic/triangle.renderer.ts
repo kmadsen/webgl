@@ -1,3 +1,4 @@
+import { viewport } from './basic.camera';
 import * as shader from './shader';
 import { vertSource, fragSource } from './triangle.shaders'
 
@@ -12,6 +13,8 @@ class TriangleRenderer {
   constructor(canvas: HTMLCanvasElement, gl: WebGL2RenderingContext) {
     this.canvas = canvas;
     this.gl = gl;
+
+    viewport(gl, canvas);
 
     const program = this.program = this.initProgram();
     if (!program) {
@@ -37,6 +40,7 @@ class TriangleRenderer {
     this.gl.deleteProgram(this.program);
     this.gl.deleteBuffer(this.vbo);
     this.gl.deleteBuffer(this.ibo);
+    this.gl.deleteProgram(this.program);
   }
 
   private initProgram(): WebGLProgram | null {

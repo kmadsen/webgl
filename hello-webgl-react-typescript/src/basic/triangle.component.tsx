@@ -18,16 +18,12 @@ const Triangle = () => {
       preserveDrawingBuffer: true,
       failIfMajorPerformanceCaveat: true
     }
-    canvas.getContext('webgl2')
+
     const gl: WebGL2RenderingContext | null = canvas.getContext('webgl2', attributes);
     if (!gl) {
       console.error('WebGL2 is not supported by your browser');
       return;
     }
-
-    // canvas.width = window.innerWidth;
-    // canvas.height = window.innerHeight;
-    // gl.viewport(0, 0, canvas.width, canvas.height);
 
     const triangleRenderer = new TriangleRenderer(canvas, gl);
 

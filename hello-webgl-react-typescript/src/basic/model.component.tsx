@@ -1,8 +1,8 @@
 import React, { useRef, useEffect } from 'react';
 import './basic.component.css';
-import RectangleRenderer from './rectangle.renderer';
+import ModelRenderer from './model.renderer';
 
-const Rectangle = () => {
+const Model = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -18,16 +18,16 @@ const Rectangle = () => {
       return;
     }
 
-    const rectangleRenderer = new RectangleRenderer(canvas, gl);
+    const renderer = new ModelRenderer(canvas, gl);
     
     gl.clearColor(0.0, 1.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
-    rectangleRenderer.render();
-    rectangleRenderer.dispose();
+    renderer.render();
+    renderer.dispose();
   }, [])
 
   return <canvas className="fill-window" ref={canvasRef}/>
 }
 
-export default Rectangle;
+export default Model;
