@@ -1,9 +1,9 @@
 import React, { useRef, useEffect } from 'react';
 import '../common/basic.component.css';
-import AnimateRenderer from './animate.renderer';
+import CubeRenderer from './cube.renderer';
 import { CanvasViewTarget } from '../common/viewtarget';
 
-const AnimateComponent = () => {
+const CubeComponent = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const requestRef = React.useRef<number>();
@@ -28,19 +28,15 @@ const AnimateComponent = () => {
       return;
     }
 
-    const viewTarget = new CanvasViewTarget(gl, canvas);
-    const renderer = new AnimateRenderer(gl, viewTarget);
+    const canvasViewTarget = new CanvasViewTarget(gl, canvas);
+    const renderer = new CubeRenderer(gl, canvasViewTarget);
+
     function render(time: DOMHighResTimeStamp) {
       if (gl != null && canvas != null) {
-        viewTarget.bind();
+        canvasViewTarget.bind();
         renderer.render(time);
         requestRef.current = requestAnimationFrame(render);
       }
-
-      // This allows you to throttle the animation loop
-      // timeoutRef.current = setTimeout(() => {
-      //   requestRef.current = requestAnimationFrame(render);
-      // }, 1000.0);
     }
     requestRef.current = requestAnimationFrame(render);
 
@@ -55,7 +51,11 @@ const AnimateComponent = () => {
     };
   }, []);
 
-  return <canvas className="fill-window" ref={canvasRef}/>
+  return (
+    <div>
+      <canvas className="fill-window" ref={canvasRef}/>
+    </div>
+  )
 }
 
-export default AnimateComponent;
+export default CubeComponent;

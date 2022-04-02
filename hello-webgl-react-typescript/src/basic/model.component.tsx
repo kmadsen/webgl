@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
-import './basic.component.css';
+import '../common/basic.component.css';
 import ModelRenderer from './model.renderer';
+import { CanvasViewTarget } from '../common/viewtarget';
 
 const Model = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -18,8 +19,11 @@ const Model = () => {
       return;
     }
 
-    const renderer = new ModelRenderer(canvas, gl);
+    const viewTarget = new CanvasViewTarget(gl, canvas);
+    const renderer = new ModelRenderer(gl);
     
+    viewTarget.bind();
+
     gl.clearColor(0.0, 1.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     

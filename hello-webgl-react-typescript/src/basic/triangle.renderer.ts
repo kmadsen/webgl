@@ -1,20 +1,15 @@
-import { viewport } from './basic.camera';
-import * as shader from './shader';
+import * as shader from '../common/shader';
 import { vertSource, fragSource } from './triangle.shaders'
 
 class TriangleRenderer {
-  canvas: HTMLCanvasElement
   gl: WebGL2RenderingContext
 
   program: WebGLProgram | null = null;
   vbo: WebGLBuffer | null = null;
   ibo: WebGLBuffer | null = null;
 
-  constructor(canvas: HTMLCanvasElement, gl: WebGL2RenderingContext) {
-    this.canvas = canvas;
+  constructor(gl: WebGL2RenderingContext) {
     this.gl = gl;
-
-    viewport(gl, canvas);
 
     const program = this.program = this.initProgram();
     if (!program) {
@@ -106,8 +101,7 @@ class TriangleRenderer {
     const aVertexPosition: GLint = gl.getAttribLocation(program, 'aVertexPosition');
     gl.vertexAttribPointer(aVertexPosition, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(aVertexPosition);
-    shader.logAttributes(gl, program);
-  
+
     return program;
   }
 }

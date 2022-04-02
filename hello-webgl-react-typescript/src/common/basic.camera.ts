@@ -1,17 +1,12 @@
-import { mat4 } from 'gl-matrix';
+import { mat4, ReadonlyVec3 } from 'gl-matrix';
 
-export function viewport(
-  gl: WebGL2RenderingContext,
-  canvas: HTMLCanvasElement
+export function viewMatrix(
+  out: mat4
 ) {
-  const width = canvas.clientWidth;
-  const height = Math.floor(canvas.clientHeight);
-
-  if (gl.canvas.width != width || gl.canvas.height != height) {
-    canvas.width = width;
-    canvas.height = height;
-    gl.viewport(0, 0, width, height);
-  }
+  const eye:    ReadonlyVec3 = [0.0, 0.0,-5.0];
+  const center: ReadonlyVec3 = [0.0, 0.0, 0.0];
+  const up:     ReadonlyVec3 = [0.0, 1.0, 0.0];
+  mat4.lookAt(out, eye, center, up);
 }
 
 /**
@@ -28,22 +23,31 @@ export function viewport(
  * @param out The projection matrix that will be written to.
  */
 export function orthoProjection(
-  out: mat4,
-  gl: WebGL2RenderingContext
+  out: mat4, width: number, height: number
 ) {
   const left = -1;
   const right = 1;
   const bottom = 1;
   const top = -1;
-  const near = -1;
-  const far = 1;
+  const near = 0;
+  const far = 10;
   mat4.ortho(out, left, right, bottom, top, near, far)
 
-  if (gl.canvas.clientWidth > gl.canvas.clientHeight) {
-    const scaleX = gl.canvas.clientHeight / gl.canvas.clientWidth;
+  if (width > height) {
+    const scaleX = height / width;
     mat4.scale(out, out, [scaleX, 1.0, 1.0])
   } else {
-    const scaleY = gl.canvas.clientWidth / gl.canvas.clientHeight;
+    const scaleY = width / height;
     mat4.scale(out, out, [1.0, scaleY, 1.0])
   }
+}
+
+export function perspectiveProjection(
+  out: mat4, width: number, height: number
+) {
+  const fovy = 45;
+  const near = 0.1;
+  const far = 100;
+  const aspect = width / height;
+  mat4.perspective(out, fovy, aspect, near, far)
 }

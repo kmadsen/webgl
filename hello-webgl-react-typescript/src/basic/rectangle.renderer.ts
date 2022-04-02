@@ -1,9 +1,7 @@
-import * as shader from './shader'
+import * as shader from '../common/shader'
 import { vertSource, fragSource } from './rectangle.shaders';
-import { viewport } from './basic.camera';
 
 class RectangleRenderer {
-  canvas: HTMLCanvasElement
   gl: WebGL2RenderingContext
 
   FBYTES = 4;
@@ -24,11 +22,8 @@ class RectangleRenderer {
   vbo: WebGLBuffer | null = null;
   ibo: WebGLBuffer | null = null;
   
-  constructor(canvas: HTMLCanvasElement, gl: WebGL2RenderingContext) {
-    this.canvas = canvas;
+  constructor(gl: WebGL2RenderingContext) {
     this.gl = gl;
-
-    viewport(gl, canvas);
     
     const program = this.program = this.initProgram();
     if (!program) {
@@ -117,8 +112,6 @@ class RectangleRenderer {
     gl.bindVertexArray(null);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-
-    shader.logAttributes(gl, program);
 
     return program;
   }

@@ -1,15 +1,16 @@
 import React, { useRef, useEffect } from 'react';
 import '../common/basic.component.css';
-import AnimateRenderer from './animate.renderer';
+import TextureRenderer from './texture.renderer';
 import { CanvasViewTarget } from '../common/viewtarget';
 
-const AnimateComponent = () => {
+const TextureComponent = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const requestRef = React.useRef<number>();
   const timeoutRef = React.useRef<NodeJS.Timeout>();
 
   useEffect(() => {
+    console.log('Call useEffect component');
     const canvas: HTMLCanvasElement | null = canvasRef.current
     if (!canvas) {
       console.error('Sorry! No HTML5 Canvas was found on this page');
@@ -28,23 +29,21 @@ const AnimateComponent = () => {
       return;
     }
 
-    const viewTarget = new CanvasViewTarget(gl, canvas);
-    const renderer = new AnimateRenderer(gl, viewTarget);
+    const canvasViewTarget = new CanvasViewTarget(gl, canvas);
+    const renderer = new TextureRenderer(gl, canvasViewTarget);
+
     function render(time: DOMHighResTimeStamp) {
       if (gl != null && canvas != null) {
-        viewTarget.bind();
+        canvasViewTarget.bind();
         renderer.render(time);
         requestRef.current = requestAnimationFrame(render);
       }
-
-      // This allows you to throttle the animation loop
-      // timeoutRef.current = setTimeout(() => {
-      //   requestRef.current = requestAnimationFrame(render);
-      // }, 1000.0);
     }
+    console.log("start render loop")
     requestRef.current = requestAnimationFrame(render);
 
     return () => {
+      console.log("end render loop")
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current)
       }
@@ -55,7 +54,11 @@ const AnimateComponent = () => {
     };
   }, []);
 
-  return <canvas className="fill-window" ref={canvasRef}/>
+  return (
+    <div>
+      <canvas className="fill-window" ref={canvasRef}/>
+    </div>
+  )
 }
 
-export default AnimateComponent;
+export default TextureComponent;
