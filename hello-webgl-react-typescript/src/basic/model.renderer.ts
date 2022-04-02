@@ -1,10 +1,8 @@
-import * as shader from './shader'
+import * as shader from '../common/shader'
 import { vertSource, fragSource } from './model.shaders';
 import Circle2D from './model.circle';
-import { viewport } from './basic.camera';
 
 class ModelRenderer {
-  canvas: HTMLCanvasElement
   gl: WebGL2RenderingContext
 
   model: Circle2D
@@ -14,13 +12,10 @@ class ModelRenderer {
   vbo: WebGLBuffer | null = null;
   ibo: WebGLBuffer | null = null;
   
-  constructor(canvas: HTMLCanvasElement, gl: WebGL2RenderingContext) {
-    this.canvas = canvas;
+  constructor(gl: WebGL2RenderingContext) {
     this.gl = gl;
     
     this.model = new Circle2D(0.5, 30);
-
-    viewport(gl, canvas);
 
     const program = this.program = this.initProgram();
     if (!program) {
@@ -110,8 +105,6 @@ class ModelRenderer {
     gl.bindVertexArray(null);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-
-    shader.logAttributes(gl, program);
 
     return program;
   }

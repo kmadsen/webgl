@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
-import './basic.component.css';
+import '../common/basic.component.css';
 import RectangleRenderer from './rectangle.renderer';
+import { CanvasViewTarget } from '../common/viewtarget';
 
 const Rectangle = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -18,11 +19,14 @@ const Rectangle = () => {
       return;
     }
 
-    const rectangleRenderer = new RectangleRenderer(canvas, gl);
+    const viewTarget = new CanvasViewTarget(gl, canvas);
+    const rectangleRenderer = new RectangleRenderer(gl);
     
+    viewTarget.bind();
+
     gl.clearColor(0.0, 1.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    
+
     rectangleRenderer.render();
     rectangleRenderer.dispose();
   }, [])

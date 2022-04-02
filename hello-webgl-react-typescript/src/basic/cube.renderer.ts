@@ -1,17 +1,17 @@
 import * as shader from '../common/shader'
-import { vertSource, fragSource } from './animate.shaders';
-import Circle2D from './model.circle';
+import { vertSource, fragSource } from './cube.shaders';
+import Cube3D from './model.cube';
 import { mat4 } from 'gl-matrix';
-import { viewMatrix, orthoProjection } from '../common/basic.camera';
+import { viewMatrix, perspectiveProjection } from '../common/basic.camera';
 import { ViewTarget } from '../common/viewtarget';
 
-class AnimateRenderer {
+class CubeRenderer {
   gl: WebGL2RenderingContext
-  viewTarget: ViewTarget;
+  viewTarget: ViewTarget
 
   program: WebGLProgram | null = null;
 
-  model: Circle2D;
+  model: Cube3D;
   vao: WebGLVertexArrayObject | null = null;
   vbo: WebGLBuffer | null = null;
   ibo: WebGLBuffer | null = null;
@@ -26,15 +26,14 @@ class AnimateRenderer {
   constructor(gl: WebGL2RenderingContext, viewTarget: ViewTarget) {
     this.gl = gl;
     this.viewTarget = viewTarget;
-    
-    this.model = new Circle2D(0.5, 10);
 
+    this.model = new Cube3D();
     this.modelMat4 = mat4.create();
     this.viewMat4 = mat4.create();
     this.modelViewMat4 = mat4.create();
     this.projectionMat4= mat4.create();
 
-    viewMatrix(this.viewMat4)
+    viewMatrix(this.viewMat4);
 
     const program = this.program = this.initProgram();
     if (!program) {
@@ -46,23 +45,20 @@ class AnimateRenderer {
   render(time: number) {
     const gl = this.gl;
 
-    this.viewTarget.bind();
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
 
-    gl?.clear(gl.COLOR_BUFFER_BIT);
-    // gl?.clearColor(0.0, 1.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     // gl?.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
+    
     gl.useProgram(this.program);
 
-    orthoProjection(this.projectionMat4, this.viewTarget.width(), this.viewTarget.height());
+    perspectiveProjection(this.projectionMat4, this.viewTarget.width(), this.viewTarget.height());
     gl.uniformMatrix4fv(this.projectionMat4Location, false, this.projectionMat4);
 
     mat4.identity(this.modelMat4);
-    const radianLoop = ((time % 5000) / 5000) * Math.PI * 2;
-    const xPos = this.model.round(0.2 * Math.cos(radianLoop), 3);
-    const yPos = this.model.round(0.2 * Math.sin(radianLoop), 3);
-    mat4.translate(this.modelMat4, this.modelMat4, [xPos * 3, yPos, 0.0]);
-    mat4.rotate(this.modelMat4, this.modelMat4, -radianLoop * 2.0, [0.0, 0.0, 1.0]);
+    const radianLoop = ((time % 10000) / 10000) * Math.PI * 2;
+    mat4.rotate(this.modelMat4, this.modelMat4, -radianLoop * 2.0, [0.0, 1.0, 0.0]);
 
     mat4.multiply(this.modelViewMat4, this.viewMat4, this.modelMat4);
     gl.uniformMatrix4fv(this.modelViewMat4Location, false, this.modelViewMat4);
@@ -75,7 +71,7 @@ class AnimateRenderer {
       gl.UNSIGNED_SHORT,
       0
     );
-    
+
     gl.bindVertexArray(null);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
@@ -153,4 +149,4 @@ class AnimateRenderer {
   }
 }
 
-export default AnimateRenderer;
+export default CubeRenderer;
