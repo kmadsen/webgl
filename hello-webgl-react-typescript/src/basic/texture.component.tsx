@@ -2,15 +2,14 @@ import React, { useRef, useEffect } from 'react';
 import '../common/basic.component.css';
 import TextureRenderer from './texture.renderer';
 import { CanvasViewTarget } from '../common/viewtarget';
+import { mat4, vec2 } from 'gl-matrix';
+import ModelTrackMouse from './model.trackmouse';
 
 const TextureComponent = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  const requestRef = React.useRef<number>();
-  const timeoutRef = React.useRef<NodeJS.Timeout>();
+  const animationRef = useRef<number>();
 
   useEffect(() => {
-    console.log('Call useEffect component');
     const canvas: HTMLCanvasElement | null = canvasRef.current
     if (!canvas) {
       console.error('Sorry! No HTML5 Canvas was found on this page');
@@ -29,26 +28,38 @@ const TextureComponent = () => {
       return;
     }
 
+    const modelMat4 = mat4.create();
+    const trackMouse = new ModelTrackMouse(canvas)
     const canvasViewTarget = new CanvasViewTarget(gl, canvas);
     const renderer = new TextureRenderer(gl, canvasViewTarget);
 
     function render(time: DOMHighResTimeStamp) {
       if (gl != null && canvas != null) {
         canvasViewTarget.bind();
-        renderer.render(time);
-        requestRef.current = requestAnimationFrame(render);
+
+        const mouseMovePosition: vec2 | null = trackMouse.getMovePosition();
+        if (mouseMovePosition) {
+          mat4.identity(modelMat4);
+          mat4.rotate(modelMat4, modelMat4, mouseMovePosition[0] * Math.PI, [0.0, 1.0, 0.0])
+          mat4.rotate(modelMat4, modelMat4, mouseMovePosition[1] * Math.PI, [1.0, 0.0, 0.0])
+          renderer.render(modelMat4);
+        } else {
+          mat4.identity(modelMat4);
+          const radianLoop = ((time % 20000) / 20000) * Math.PI * 2;
+          mat4.rotate(modelMat4, modelMat4, radianLoop, [1.0, 0.0, 0.0]);
+          mat4.rotate(modelMat4, modelMat4, radianLoop, [0.0, 1.0, 0.0]);
+          mat4.rotate(modelMat4, modelMat4, radianLoop, [0.0, 0.0, 1.0]);
+          renderer.render(modelMat4);
+        }
+
+        animationRef.current = requestAnimationFrame(render);
       }
     }
-    console.log("start render loop")
-    requestRef.current = requestAnimationFrame(render);
+    animationRef.current = requestAnimationFrame(render);
 
     return () => {
-      console.log("end render loop")
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
-      if (requestRef.current) {
-        cancelAnimationFrame(requestRef.current);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
       }
       renderer.dispose();
     };

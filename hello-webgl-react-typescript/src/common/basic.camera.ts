@@ -3,7 +3,7 @@ import { mat4, ReadonlyVec3 } from 'gl-matrix';
 export function viewMatrix(
   out: mat4
 ) {
-  const eye:    ReadonlyVec3 = [0.0, 0.0,-5.0];
+  const eye:    ReadonlyVec3 = [0.0, 0.0, 5.0];
   const center: ReadonlyVec3 = [0.0, 0.0, 0.0];
   const up:     ReadonlyVec3 = [0.0, 1.0, 0.0];
   mat4.lookAt(out, eye, center, up);

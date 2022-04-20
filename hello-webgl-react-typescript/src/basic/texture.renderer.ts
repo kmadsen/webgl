@@ -17,7 +17,6 @@ class TextureRenderer {
   ibo: WebGLBuffer | null = null;
   texture: WebGLTexture | null = null
 
-  modelMat4: mat4;
   viewMat4: mat4;
   modelViewMat4: mat4;
   projectionMat4: mat4;
@@ -30,7 +29,6 @@ class TextureRenderer {
     this.viewTarget = viewTarget;
 
     this.model = new Cube3D();
-    this.modelMat4 = mat4.create();
     this.viewMat4 = mat4.create();
     this.modelViewMat4 = mat4.create();
     this.projectionMat4= mat4.create();
@@ -44,7 +42,7 @@ class TextureRenderer {
     }
   }
   
-  render(time: number) {
+  render(modelMat4: mat4) {
     const gl = this.gl;
 
     gl.enable(gl.DEPTH_TEST);
@@ -58,11 +56,7 @@ class TextureRenderer {
     perspectiveProjection(this.projectionMat4, this.viewTarget.width(), this.viewTarget.height());
     gl.uniformMatrix4fv(this.projectionMat4Location, false, this.projectionMat4);
 
-    mat4.identity(this.modelMat4);
-    const radianLoop = ((time % 20000) / 20000) * Math.PI * 2;
-    mat4.rotate(this.modelMat4, this.modelMat4, -radianLoop * 2.0, [0.0, 1.0, 0.0]);
-
-    mat4.multiply(this.modelViewMat4, this.viewMat4, this.modelMat4);
+    mat4.multiply(this.modelViewMat4, this.viewMat4, modelMat4);
     gl.uniformMatrix4fv(this.modelViewMat4Location, false, this.modelViewMat4);
 
     if (this.model.textureCoords) {
