@@ -1,9 +1,9 @@
-import * as shader from '../common/shader'
+import * as shader from './shader'
 import { vertSource, fragSource } from './texture.shaders';
 import Cube3D from './model.cube';
 import { mat4 } from 'gl-matrix';
-import { viewMatrix, perspectiveProjection } from '../common/basic.camera';
-import { ViewTarget } from '../common/viewtarget';
+import { viewMatrix, perspectiveProjection } from './basic.camera';
+import { ViewTarget } from './viewtarget';
 
 class TextureRenderer {
   gl: WebGL2RenderingContext

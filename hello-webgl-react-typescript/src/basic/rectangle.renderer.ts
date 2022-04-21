@@ -1,4 +1,4 @@
-import * as shader from '../common/shader'
+import * as shader from './shader'
 import { vertSource, fragSource } from './rectangle.shaders';
 
 class RectangleRenderer {

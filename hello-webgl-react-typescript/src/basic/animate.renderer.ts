@@ -1,9 +1,9 @@
-import * as shader from '../common/shader'
+import * as shader from './shader'
 import { vertSource, fragSource } from './animate.shaders';
 import Circle2D from './model.circle';
 import { mat4 } from 'gl-matrix';
-import { viewMatrix, orthoProjection } from '../common/basic.camera';
-import { ViewTarget } from '../common/viewtarget';
+import { viewMatrix, orthoProjection } from './basic.camera';
+import { ViewTarget } from './viewtarget';
 
 class AnimateRenderer {
   gl: WebGL2RenderingContext

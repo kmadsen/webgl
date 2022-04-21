@@ -1,4 +1,4 @@
-import * as shader from '../common/shader'
+import * as shader from './shader'
 import { vertSource, fragSource } from './model.shaders';
 import Circle2D from './model.circle';
 

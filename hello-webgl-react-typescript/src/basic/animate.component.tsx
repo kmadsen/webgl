@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
-import '../common/basic.component.css';
+import './basic.component.css';
 import AnimateRenderer from './animate.renderer';
-import { CanvasViewTarget } from '../common/viewtarget';
+import { CanvasViewTarget } from './viewtarget';
 
 const AnimateComponent = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);

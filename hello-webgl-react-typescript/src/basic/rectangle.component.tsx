@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
-import '../common/basic.component.css';
+import './basic.component.css';
 import RectangleRenderer from './rectangle.renderer';
-import { CanvasViewTarget } from '../common/viewtarget';
+import { CanvasViewTarget } from './viewtarget';
 
 const Rectangle = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);

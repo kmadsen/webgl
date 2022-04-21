@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
-import '../common/basic.component.css';
+import './basic.component.css';
 import TextureRenderer from './texture.renderer';
-import { CanvasViewTarget } from '../common/viewtarget';
+import { CanvasViewTarget } from './viewtarget';
 import { mat4, vec2 } from 'gl-matrix';
 import ModelTrackMouse from './model.trackmouse';
 

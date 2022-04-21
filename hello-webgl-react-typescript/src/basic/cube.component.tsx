@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
-import '../common/basic.component.css';
+import './basic.component.css';
 import CubeRenderer from './cube.renderer';
-import { CanvasViewTarget } from '../common/viewtarget';
+import { CanvasViewTarget } from './viewtarget';
 
 const CubeComponent = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
