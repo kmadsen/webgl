@@ -1,4 +1,4 @@
-import MatrixMxN, { changeOfCoordiantes, multiply, transpose } from "./matrix";
+import MatrixMxN, { changeOfCoordiantes, EPSILON, multiply, steadState, transpose } from "./matrix";
 
 test ('create m by n matrix', () => {
   const matrix = new MatrixMxN(3, 4)
@@ -273,7 +273,6 @@ test ('echelonReduced stress test', () => {
     .setColumn(7, 74000, 56000, 10500, 25000, 17500, 196000, 5000)
     .echelon()
     .echelonReduced()
-    .mapColumn(3, (row, value) => Math.round(value))
 
   new MatrixMxN(7, 8).setValuesRowOrder(
     1, 0, 0, 0, 0, 0, 0, 99575.656,
@@ -365,5 +364,61 @@ test ('changeOfCoordiantes with 2x2 matrices', () => {
   // matrix back.
   multiply(to, matrix).forEach((row, column, expected) => {
     expect(from.getValue(row, column)).toBe(expected)
+  })
+})
+
+test ('steadyState vector', () => {
+  const matrix = new MatrixMxN(2).setValuesRowOrder(
+    0.6, 0.3,
+    0.4, 0.7,
+  )
+
+  const steadStateVector = steadState(matrix)
+
+  new MatrixMxN(2, 1).setValuesRowOrder(
+    3 / 7,
+    4 / 7,
+  ).forEach((row, column, expected) => {
+    const actual = steadStateVector.getValue(row, column)
+    const error = Math.abs(actual - expected)
+    expect(error).toBeLessThanOrEqual(EPSILON)
+  })
+})
+
+test ('steadyState vector', () => {
+  const matrix = new MatrixMxN(3).setValuesRowOrder(
+    0.7, 0.1, 0.3,
+    0.2, 0.8, 0.3,
+    0.1, 0.1, 0.4,
+  )
+
+  const steadStateVector = steadState(matrix)
+
+  new MatrixMxN(3, 1).setValuesRowOrder(
+    9 / 28,
+    15 / 28,
+    4 / 28
+  ).forEach((row, column, expected) => {
+    const actual = steadStateVector.getValue(row, column)
+    const error = Math.abs(actual - expected)
+    expect(error).toBeLessThanOrEqual(EPSILON)
+  })
+})
+
+
+test ('steadyState vector multplies from original', () => {
+  const matrix = new MatrixMxN(3).setValuesRowOrder(
+    0.7, 0.1, 0.3,
+    0.2, 0.8, 0.3,
+    0.1, 0.1, 0.4,
+  )
+
+  const steadStateVector = steadState(matrix)
+  const nextStateVector = multiply(matrix, steadStateVector)
+
+  steadStateVector.forEach((row, column, expected) => {
+    const actual = nextStateVector.getValue(row, column)
+    const error = Math.abs(actual - expected)
+    expect(error).toBeLessThanOrEqual(EPSILON)
   })
 })

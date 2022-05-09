@@ -2,7 +2,7 @@
  * The Number.EPSILON is too small. These matrix algorithms
  * use a larger EPSILON.
  */
-const EPSILON = 1e-6;
+export const EPSILON = 1e-6;
 
 class MatrixMxN {
   m: number // rows
@@ -435,6 +435,32 @@ export function changeOfCoordiantes(from: MatrixMxN, to: MatrixMxN): MatrixMxN {
 
   return new MatrixMxN(from.m)
     .map((row, column) => augmented.getValue(row, to.n + column))
+}
+
+/**
+ * Given a square stochastic matrix used for Markov Chains. This function
+ * will give the steady-state vector. Solving for x where (P - I)x = 0
+ *
+ * @param matrix M * M probability matrix
+ * @returns M * 1 steady state probability vector
+ */
+export function steadState(matrix: MatrixMxN): MatrixMxN {
+  const intermediate = new MatrixMxN(matrix.m, matrix.n + 1)
+    .identity()
+  matrix.forEach((row, column, value) => {
+    const delta = value - intermediate.getValue(row, column)
+    intermediate.setValue(row, column, delta)
+  })
+  intermediate.echelon().echelonReduced()
+
+  let sum = 0.0
+  return new MatrixMxN(matrix.m, 1)
+    .mapColumn(0, index => {
+      const value = intermediate.getValue(index, matrix.n - 1)
+      return value == 0 ? 1.0 : -value
+    })
+    .forColumn(0, (_, value) => sum += value)
+    .mapColumn(0, (_, value) => value / sum)
 }
 
 export default MatrixMxN
