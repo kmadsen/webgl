@@ -361,10 +361,9 @@ test ('changeOfCoordiantes with 2x2 matrices', () => {
 
   const matrix = changeOfCoordiantes(from, to)
 
-  new MatrixMxN(2).setValuesRowOrder(
-    6, 4,
-    -5, -3
-  ).forEach((row, column, expected) => {
-    expect(matrix.getValue(row, column)).toBe(expected)
+  // Verify we can multiply the matrix and get the "from"
+  // matrix back.
+  multiply(to, matrix).forEach((row, column, expected) => {
+    expect(from.getValue(row, column)).toBe(expected)
   })
 })

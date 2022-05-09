@@ -1,5 +1,3 @@
-import assert from "node:assert";
-
 /**
  * The Number.EPSILON is too small. These matrix algorithms
  * use a larger EPSILON.
@@ -315,7 +313,6 @@ class MatrixMxN {
    * Assumed to be a square matrix or the result is undefined
    */
   determinant(): number {
-    assert(this.m == this.n)
     if (this.n == 2) {
       const a = this.data
       return a[0] * a[3] - a[1] * a[2]
@@ -425,13 +422,10 @@ export function transpose(matrix: MatrixMxN): MatrixMxN {
  * Given two matrices with column vectors. Find the change-of-coordiantes
  * matrix that allows you to convert points from one basis to another.
  *
- * @throws when from.m is not equal to to.m
  * @param from column vectors that exist within a basis
  * @param to column vectors that exist within another basis
  */
 export function changeOfCoordiantes(from: MatrixMxN, to: MatrixMxN): MatrixMxN {
-  assert(from.m == to.m)
-
   const augmented = new MatrixMxN(from.m, from.n + to.n)
   to.forEach((row, column, value) => augmented
     .setValue(row, column, value))
