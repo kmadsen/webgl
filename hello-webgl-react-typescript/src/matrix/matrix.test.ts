@@ -1,4 +1,4 @@
-import MatrixMxN, { changeOfCoordiantes, EPSILON, multiply, steadState, transpose } from "./matrix";
+import MatrixMxN, { changeOfCoordiantes, EPSILON, multiply, quadratic, steadState, transpose } from "./matrix";
 
 test ('create m by n matrix', () => {
   const matrix = new MatrixMxN(3, 4)
@@ -421,4 +421,11 @@ test ('steadyState vector multplies from original', () => {
     const error = Math.abs(actual - expected)
     expect(error).toBeLessThanOrEqual(EPSILON)
   })
+})
+
+test ('quadratic formula ', () => {
+  const result = quadratic(1.0, -1.92, 0.92)
+
+  expect(result[0]).toBe(1.0)
+  expect(result[1]).toBeCloseTo(0.92, 7)
 })

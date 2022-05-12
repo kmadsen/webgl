@@ -253,7 +253,7 @@ class MatrixMxN {
             this.mapRow(row, (column, rowValue) => {
               const pivotRowValue = this.getValue(pivotRow, column)
               const resultRowValue = rowValue + pivotRowValue * multiple
-              return this.groom(resultRowValue)
+              return groom(resultRowValue)
             })
           }
           foundPivot = true
@@ -286,7 +286,7 @@ class MatrixMxN {
         if (value != 1.0) {
           const multiple = 1 / value
           this.mapRow(pivotRow, (_, rowValue) => {
-            return this.groom(rowValue * multiple)
+            return groom(rowValue * multiple)
           })
           value = this.getValue(pivotRow, pivotColumn)
         }
@@ -300,7 +300,7 @@ class MatrixMxN {
             vector[column] = value
           })
           this.mapRow(i, (column, value) => {
-            return this.groom(value + vector[column] * multiple)
+            return groom(value + vector[column] * multiple)
           })
         }
         pivotRow--
@@ -328,7 +328,7 @@ class MatrixMxN {
       for (let i = 1; i < this.n; i++) {
         result *= echelon.getValue(i, i)
       }
-      return this.groom(result)
+      return groom(result)
     }
   }
 
@@ -368,10 +368,10 @@ class MatrixMxN {
     console.log(`M:${this.m} N:${this.n}\n${rows}`)
     return this;
   }
+}
 
-  private groom(value: number): number {
-    return Math.abs(value) < EPSILON ? 0.0 : value
-  }
+function groom(value: number): number {
+  return Math.abs(value) < EPSILON ? 0.0 : value
 }
 
 /**
@@ -461,6 +461,15 @@ export function steadState(matrix: MatrixMxN): MatrixMxN {
     })
     .forColumn(0, (_, value) => sum += value)
     .mapColumn(0, (_, value) => value / sum)
+}
+
+export function quadratic(a: number, b: number, c: number): number[] {
+  const discriminant = (b * b) - (4.0 * a * c)
+  const rooted = Math.sqrt(discriminant)
+  return [
+    Math.fround((-b + rooted) / (2 * a)),
+    Math.fround((-b - rooted) / (2 * a)),
+  ]
 }
 
 export default MatrixMxN
