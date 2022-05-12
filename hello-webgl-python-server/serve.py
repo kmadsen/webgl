@@ -9,11 +9,21 @@ logger.addHandler(logging.StreamHandler(sys.stdout))
 
 class HelloHandler(BaseHTTPRequestHandler):
     def do_GET(self):
+        paths = [
+            '/cpp/hello-wasm.html',
+            '/cpp/hello-wasm.js',
+            '/cpp/hello-wasm.wasm'
+        ]
+        if (self.path in paths):
+            source = self.path.strip("/")
+        else:
+            source = 'index.html'
+
         self.send_response(200)
         self.send_header('Content-type', 'text/html; utf-8')
         self.end_headers()
 
-        with open('index.html', 'rb') as file: 
+        with open(source, 'rb') as file:
             self.wfile.write(file.read())
 
 if __name__ == '__main__':
