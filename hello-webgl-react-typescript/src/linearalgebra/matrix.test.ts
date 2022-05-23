@@ -1,4 +1,4 @@
-import MatrixMxN, { changeOfCoordiantes, EPSILON, multiply, quadratic, steadState, transpose } from "./matrix";
+import MatrixMxN, * as MatrixFunc from "./matrix";
 
 test ('create m by n matrix', () => {
   const matrix = new MatrixMxN(3, 4)
@@ -55,7 +55,7 @@ test ('multiply matrices', () => {
   rhs.setValue(2, 0, 11)
   rhs.setValue(2, 1, 12)
 
-  const result = multiply(lhs, rhs)
+  const result = MatrixFunc.multiply(lhs, rhs)
 
   expect(result.m).toBe(2)
   expect(result.n).toBe(2)
@@ -74,7 +74,7 @@ test ('setting rows and columns', () => {
     .setColumn(0, 6, -2, -3, -1, 5)
     .setColumn(1, 4,  1,  7,  3, 2)
 
-  const result = multiply(lhs, rhs)
+  const result = MatrixFunc.multiply(lhs, rhs)
 
   expect(result.m).toBe(3)
   expect(result.n).toBe(2)
@@ -104,8 +104,8 @@ test ('combine partitioned matrices', () => {
     .setColumn(0, -1, 5)
     .setColumn(1,  3, 2)
 
-  const result00 = multiply(lhs00, rhs00).add(multiply(lhs01, rhs10))
-  const result10 = multiply(lhs10, rhs00).add(multiply(lhs11, rhs10))
+  const result00 = MatrixFunc.multiply(lhs00, rhs00).add(MatrixFunc.multiply(lhs01, rhs10))
+  const result10 = MatrixFunc.multiply(lhs10, rhs00).add(MatrixFunc.multiply(lhs11, rhs10))
   const result = new MatrixMxN(3, 2)
     .setPartition(0, 0, result00)
     .setPartition(2, 0, result10)
@@ -126,7 +126,7 @@ test ('transpose matrix', () => {
     0, 4
   )
 
-  const matrixT = transpose(matrix)
+  const matrixT = MatrixFunc.transpose(matrix)
 
   new MatrixMxN(2, 3).setValuesRowOrder(
     -5, 1, 0,
@@ -348,6 +348,46 @@ test ('determinant of 4x4 matrix', () => {
   expect(matrix.determinant()).toBe(0)
 })
 
+test ('adjoint of a 3x3 matrix', () => {
+  const matrix = new MatrixMxN(3).setValuesRowOrder(
+    2, 1, 3,
+    1, -1, 1,
+    1, 4, -2,
+  )
+
+  const adjointMatrix = MatrixFunc.adjoint(matrix)
+
+  new MatrixMxN(3).setValuesRowOrder(
+    -2, 14, 4,
+    3, -7, 1,
+    5, -7, -3,
+  ).forEach((row, column, expected) => {
+    const actual = adjointMatrix.getValue(row, column)
+    const error = Math.abs(actual - expected)
+    expect(error).toBeLessThanOrEqual(MatrixFunc.EPSILON)
+  })
+})
+
+test ('inverse of a 3x3 matrix', () => {
+  const matrix = new MatrixMxN(3).setValuesRowOrder(
+    2, 1, 3,
+    1, -1, 1,
+    1, 4, -2,
+  )
+
+  const matrixInversed = MatrixFunc.inverse(matrix)
+
+  new MatrixMxN(3).setValuesRowOrder(
+    -1/7,    1,   2/7,
+    3/14, -1/2,  1/14,
+    5/14, -1/2, -3/14,
+  ).forEach((row, column, expected) => {
+    const actual = matrixInversed.getValue(row, column)
+    const error = Math.abs(actual - expected)
+    expect(error).toBeLessThanOrEqual(MatrixFunc.EPSILON)
+  })
+})
+
 test ('changeOfCoordiantes with 2x2 matrices', () => {
   const from = new MatrixMxN(2).setValuesRowOrder(
     -9, -5,
@@ -358,11 +398,11 @@ test ('changeOfCoordiantes with 2x2 matrices', () => {
     -4, -5,
   )
 
-  const matrix = changeOfCoordiantes(from, to)
+  const matrix = MatrixFunc.changeOfCoordiantes(from, to)
 
   // Verify we can multiply the matrix and get the "from"
   // matrix back.
-  multiply(to, matrix).forEach((row, column, expected) => {
+  MatrixFunc.multiply(to, matrix).forEach((row, column, expected) => {
     expect(from.getValue(row, column)).toBe(expected)
   })
 })
@@ -373,15 +413,15 @@ test ('steadyState vector', () => {
     0.4, 0.7,
   )
 
-  const steadStateVector = steadState(matrix)
+  const steadyStateVector = MatrixFunc.steadyState(matrix)
 
   new MatrixMxN(2, 1).setValuesRowOrder(
     3 / 7,
     4 / 7,
   ).forEach((row, column, expected) => {
-    const actual = steadStateVector.getValue(row, column)
+    const actual = steadyStateVector.getValue(row, column)
     const error = Math.abs(actual - expected)
-    expect(error).toBeLessThanOrEqual(EPSILON)
+    expect(error).toBeLessThanOrEqual(MatrixFunc.EPSILON)
   })
 })
 
@@ -392,16 +432,16 @@ test ('steadyState vector', () => {
     0.1, 0.1, 0.4,
   )
 
-  const steadStateVector = steadState(matrix)
+  const steadyStateVector = MatrixFunc.steadyState(matrix)
 
   new MatrixMxN(3, 1).setValuesRowOrder(
     9 / 28,
     15 / 28,
     4 / 28
   ).forEach((row, column, expected) => {
-    const actual = steadStateVector.getValue(row, column)
+    const actual = steadyStateVector.getValue(row, column)
     const error = Math.abs(actual - expected)
-    expect(error).toBeLessThanOrEqual(EPSILON)
+    expect(error).toBeLessThanOrEqual(MatrixFunc.EPSILON)
   })
 })
 
@@ -413,19 +453,91 @@ test ('steadyState vector multplies from original', () => {
     0.1, 0.1, 0.4,
   )
 
-  const steadStateVector = steadState(matrix)
-  const nextStateVector = multiply(matrix, steadStateVector)
+  const steadyStateVector = MatrixFunc.steadyState(matrix)
+  const nextStateVector = MatrixFunc.multiply(matrix, steadyStateVector)
 
-  steadStateVector.forEach((row, column, expected) => {
+  steadyStateVector.forEach((row, column, expected) => {
     const actual = nextStateVector.getValue(row, column)
     const error = Math.abs(actual - expected)
-    expect(error).toBeLessThanOrEqual(EPSILON)
+    expect(error).toBeLessThanOrEqual(MatrixFunc.EPSILON)
   })
 })
 
-test ('quadratic formula ', () => {
-  const result = quadratic(1.0, -1.92, 0.92)
+test ('quadratic formula', () => {
+  const result = MatrixFunc.quadratic(1.0, -1.92, 0.92)
 
   expect(result[0]).toBe(1.0)
   expect(result[1]).toBeCloseTo(0.92, 7)
+})
+
+test ('powerMethod on 2x2 matrix to find eigen vector', () => {
+  const matrix = new MatrixMxN(2).setValuesRowOrder(
+    6.0, 5.0,
+    1.0, 2.0,
+  )
+
+  const vector = Float32Array.of(0.0, 1.0)
+  const eigenValues = matrix.powerMethod(6, vector)
+
+  expect(eigenValues[0]).toEqual(Float32Array.of(5, 2))
+  expect(eigenValues[1]).toEqual(Float32Array.of(8, 1.8))
+  expect(eigenValues[2]).toEqual(Float32Array.of(7.125, 1.450))
+  expect(eigenValues[3][0]).toBeCloseTo(7.0175, 4)
+  expect(eigenValues[3][1]).toBeCloseTo(1.407, 4)
+  expect(eigenValues[4][0]).toBeCloseTo(7.0025, 4)
+  expect(eigenValues[4][1]).toBeCloseTo(1.4010, 4)
+  expect(eigenValues[5][0]).toBeCloseTo(7.00036, 5)
+  expect(eigenValues[5][1]).toBeCloseTo(1.40014, 5)
+})
+
+test ('powerMethod on 4x4 matrix to find eigen vector', () => {
+  const matrix = new MatrixMxN(4).setValuesRowOrder(
+    10.0, 7.0, 8.0, 7.0,
+    7.0, 5.0, 6.0, 5.0,
+    8.0, 6.0, 10.0, 9.0,
+    7.0, 5.0, 9.0, 10.0,
+  )
+
+  const vector = Float32Array.of(1.0, 0.0, 0.0, 0.0)
+  const eigenValues = matrix.powerMethod(6, vector)
+
+  expect(eigenValues[0]).toEqual(Float32Array.of(10, 7, 8, 7))
+  expect(eigenValues[1][0]).toBeCloseTo(26.2, 2)
+  expect(eigenValues[1][1]).toBeCloseTo(18.8, 2)
+  expect(eigenValues[1][2]).toBeCloseTo(26.5, 2)
+  expect(eigenValues[1][3]).toBeCloseTo(24.7, 2)
+  expect(eigenValues[5][0]).toBeCloseTo(29.0060, 3)
+  expect(eigenValues[5][1]).toBeCloseTo(20.8675, 3)
+  expect(eigenValues[5][2]).toBeCloseTo(30.2891, 3)
+  expect(eigenValues[5][3]).toBeCloseTo(28.5862, 3)
+})
+
+
+test ('inversePowerMethod on 3x3 matrix to find eigen value', () => {
+  const matrix = new MatrixMxN(3).setValuesRowOrder(
+    10, -8, -4,
+    -8, 13, 4,
+    -4, 5, 4
+  )
+
+  const eigenValues = matrix.inversePowerMethod(6, 1.9)
+
+  expect(eigenValues[0][0]).toBeCloseTo(4.45, 2)
+  expect(eigenValues[0][1]).toBeCloseTo(0.50, 2)
+  expect(eigenValues[0][2]).toBeCloseTo(7.76, 2)
+  expect(eigenValues[1][0]).toBeCloseTo(5.0131, 4)
+  expect(eigenValues[1][1]).toBeCloseTo(0.0442, 4)
+  expect(eigenValues[1][2]).toBeCloseTo(9.9197, 4)
+  expect(eigenValues[2][0]).toBeCloseTo(5.0012, 4)
+  expect(eigenValues[2][1]).toBeCloseTo(0.0031, 4)
+  expect(eigenValues[2][2]).toBeCloseTo(9.9949, 4)
+  expect(eigenValues[3][0]).toBeCloseTo(5.0001, 4)
+  expect(eigenValues[3][1]).toBeCloseTo(0.0002, 4)
+  expect(eigenValues[3][2]).toBeCloseTo(9.99965, 5)
+  expect(eigenValues[4][0]).toBeCloseTo(5.000006, 5)
+  expect(eigenValues[4][1]).toBeCloseTo(0.000015, 5)
+  expect(eigenValues[4][2]).toBeCloseTo(9.99998, 5)
+  expect(eigenValues[5][0]).toBeCloseTo(5.000002, 6)
+  expect(eigenValues[5][1]).toBeCloseTo(0.0000003, 6)
+  expect(eigenValues[5][2]).toBeCloseTo(10.000004, 6)
 })

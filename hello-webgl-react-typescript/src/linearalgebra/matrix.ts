@@ -107,9 +107,24 @@ class MatrixMxN {
   forEach(compute: (row: number, column: number, value: number) => void): MatrixMxN {
     for (let i = 0; i < this.m; i++) {
       for (let j = 0; j < this.n; j++) {
-        const index = i * this.n + j 
+        const index = i * this.n + j
         compute(i, j, this.data[index])
       }
+    }
+    return this;
+  }
+
+  /**
+   * Apply a function on each diagonal element of the matrix
+   *
+   * @param compute apply function on the value
+   * @returns return this to chain operations
+   */
+  forDiagonal(compute: (index: number, value: number) => void): MatrixMxN {
+    const dimension = Math.min(this.m, this.n);
+    for (let i = 0; i < dimension; i++) {
+      const index = i * this.n + i;
+      compute(i, this.data[index])
     }
     return this;
   }
@@ -157,6 +172,22 @@ class MatrixMxN {
   }
 
   /**
+   * Apply a function on each diagonal element of the matrix.
+   * This to help compute operations with the identity.
+   *
+   * @param compute apply function on the value
+   * @returns return this to chain operations
+   */
+  mapDiagonal(compute: (index: number, value: number) => number): MatrixMxN {
+    const dimension = Math.min(this.m, this.n);
+    for (let i = 0; i < dimension; i++) {
+      const index = i * this.n + i;
+      this.data[index] = compute(i, this.data[index])
+    }
+    return this;
+  }
+
+  /**
    * @param matrix the matrix to add
    * @returns return this to chain operations
    */
@@ -174,7 +205,7 @@ class MatrixMxN {
     return this
   }
 
-    /**
+  /**
    * @param matrix the matrix to subtract
    * @returns return this to chain operations
    */
@@ -333,6 +364,58 @@ class MatrixMxN {
   }
 
   /**
+   * An iterative solution to find eigen values for a matrix provided
+   * an eigen vector. This will return the results from each iteration.
+   *
+   * @param iteratons number of iterations to approximate the eigen vectors
+   * @param eigenVector rough estimate for an initial eigen vector
+   * @returns eigen vectors for each iteration of the powerMethod
+   */
+  powerMethod(iteratons: number, eigenVector: Float32Array): Array<Float32Array> {
+    const nextVector = Float32Array.from(eigenVector)
+    const tempVector = new Float32Array(eigenVector.length)
+    return Array(...Array(iteratons)).map(() => {
+      this.forColumn(0, row => {
+        let sum = 0.0
+        nextVector.forEach((vectorValue, vectorIndex) => {
+          sum += vectorValue * this.getValue(row, vectorIndex)
+        })
+        tempVector[row] = sum
+      })
+      const eigenValue = Math.max(...nextVector)
+      nextVector.set(tempVector.map((value) => value / eigenValue))
+      return Float32Array.from(nextVector)
+    })
+  }
+
+  /**
+   * An iterative solution to find more precise estimates for eigen values.
+   * Each iteration will result in a more precise eigen vector.
+   *
+   * @param iterations number of iterations to approximate the eigen vectors
+   * @param eigenValue initial rough estimate for a specific eigen value
+   * @returns eigen vectors for each iteration of the powerMethod
+   */
+  inversePowerMethod(
+    iterations: number,
+    eigenValue: number
+  ): Array<Float32Array> {
+    const nextVector = new MatrixMxN(this.m, 1).map(() => 1.0)
+    return Array(...Array(iterations)).map(() => {
+      const maximum = Math.max(...nextVector.data)
+      nextVector.map((_row, _col, value) => value / maximum)
+      const inversed = inverse(
+        this.clone().mapDiagonal((i, value) => {
+          return value - eigenValue
+        })
+      )
+      const yk = multiply(inversed, nextVector)
+      nextVector.data.set(yk.data)
+      return yk.data
+    });
+  }
+
+  /**
    * To help with debugging, log the matrix to the console
    *
    * @returns return this to chain operations
@@ -370,6 +453,12 @@ class MatrixMxN {
   }
 }
 
+/**
+ * Removes residual floating point error if a value is close to zero.
+ *
+ * @param value floating point value
+ * @returns zero when the values is close to zero
+ */
 function groom(value: number): number {
   return Math.abs(value) < EPSILON ? 0.0 : value
 }
@@ -419,6 +508,39 @@ export function transpose(matrix: MatrixMxN): MatrixMxN {
 }
 
 /**
+ * Calculate the adjoint matrix. Expecting a square matrix, this
+ * function will return the conjugate transpose which can be used
+ * to determine the intervse of the matrix.
+ *
+ * @param matrix square matrix
+ * @returns the conjugate transpose of the matrix
+ */
+export function adjoint(matrix: MatrixMxN): MatrixMxN {
+  const result = matrix.clone()
+  return result.forEach((row, column) => {
+    const cellMatrix = new MatrixMxN(matrix.m - 1)
+      .map((cellRow, cellColumn) => matrix.getValue(
+        cellRow >= row ? cellRow + 1 : cellRow,
+        cellColumn >= column ? cellColumn + 1 : cellColumn
+      ))
+    const cellValue = Math.pow(-1, row + column) * cellMatrix.determinant()
+    result.setValue(column, row, cellValue)
+  })
+}
+
+/**
+ * Find the inverse of a square matrix. If the determinant
+ * of the matrix is zero, this function is undefined.
+ *
+ * @param matrix square matrix
+ * @returns the inverse of the matrix
+ */
+export function inverse(matrix: MatrixMxN): MatrixMxN {
+  const determinant = matrix.determinant()
+  return adjoint(matrix).multiply(1.0 / determinant)
+}
+
+/**
  * Given two matrices with column vectors. Find the change-of-coordiantes
  * matrix that allows you to convert points from one basis to another.
  *
@@ -444,7 +566,7 @@ export function changeOfCoordiantes(from: MatrixMxN, to: MatrixMxN): MatrixMxN {
  * @param matrix M * M probability matrix
  * @returns M * 1 steady state probability vector
  */
-export function steadState(matrix: MatrixMxN): MatrixMxN {
+export function steadyState(matrix: MatrixMxN): MatrixMxN {
   const intermediate = new MatrixMxN(matrix.m, matrix.n + 1)
     .identity()
   matrix.forEach((row, column, value) => {
@@ -470,6 +592,14 @@ export function quadratic(a: number, b: number, c: number): number[] {
     Math.fround((-b + rooted) / (2 * a)),
     Math.fround((-b - rooted) / (2 * a)),
   ]
+}
+
+export function vectorDot(lhs: Float32Array, rhs: Float32Array): number {
+  let sum = 0.0
+  lhs.forEach((value, index) => {
+    sum += value * rhs[index].valueOf()
+  })
+  return sum
 }
 
 export default MatrixMxN
