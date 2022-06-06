@@ -264,21 +264,21 @@ class MatrixMxN {
     // Step 1: Put the matrix into echelon form
     let pivotRow = 0
     for (let pivotColumn = 0; pivotColumn < this.n; pivotColumn++) {
-      // Move non-non zero values to the bottom.
-      this.forColumn(pivotColumn, (row, value) => {
-        if (row >= pivotColumn && value != 0) {
-          const valueAbove = this.getValue(row - 1, pivotColumn)
-          if (valueAbove == 0) {
-            this.swapRows(row, row - 1)
-          }
+      // Move zero values to the bottom.
+      for (let row = pivotRow; row < this.m - 1; row++) {
+        const value = this.getValue(row, pivotColumn)
+        const valueBelow = this.getValue(row + 1, pivotColumn)
+        if (value == 0 && valueBelow != 0) {
+          this.swapRows(row, row + 1)
         }
-      })
+      }
 
       // Reduce the column to have non zero pivot values
       let foundPivot = false;
       const pivotValue = this.getValue(pivotRow, pivotColumn)
-      this.forColumn(pivotColumn, (row, value) => {
-        if (row > pivotRow && pivotValue != 0) {
+      for (let row = pivotRow + 1; row < this.m; row++) {
+        const value = this.getValue(row, pivotColumn)
+        if (pivotValue != 0) {
           if (value != 0) {
             const multiple = -value / pivotValue
             this.mapRow(row, (column, rowValue) => {
@@ -289,7 +289,7 @@ class MatrixMxN {
           }
           foundPivot = true
         }
-      })
+      }
 
       if (foundPivot) pivotRow++
     }

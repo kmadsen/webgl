@@ -214,6 +214,27 @@ test ('echelon and echelonReduced example when last row becomes zero', () => {
   })
 })
 
+test ('echelon and echelonReduced example when top rob becomes zero', () => {
+  const matrix = new MatrixMxN(3, 5).setValuesRowOrder(
+    4, 0, 5, 2, 1,
+    0, 4, 2, 0, 2,
+    3, 2, 4, 0, 2,
+  )
+
+  matrix.echelon().echelonReduced()
+
+  new MatrixMxN(3, 5).setValuesRowOrder(
+    1, 0, 0, -2, 2/3,
+    0, 1, 0, -1, 2/3,
+    0, 0, 1, 2, -1/3,
+  ).forEach((row, column, expected) => {
+    const actual = matrix.getValue(row, column)
+    const error = Math.abs(actual - expected)
+    expect(error).toBeLessThanOrEqual(MatrixFunc.EPSILON)
+  })
+})
+
+
 test ('echelon and echelonReduced simple example', () => {
   const matrix = new MatrixMxN(3, 3).setValuesRowOrder(
     3, -1, 3,
