@@ -1,7 +1,6 @@
 import { EPSILON } from "./matrix"
 import VectorN, * as VectorFunc from "./vector";
 
-
 test ('dot product on vector', () => {
   const u = VectorN.from(2, -5, -1)
   const v = VectorN.from(3, 2, -3)
@@ -96,6 +95,19 @@ test ('constructOrthogonalBasis for 3 vectors with 4 dimensions', () => {
     VectorN.from(0.0, -2.0/3.0, 1.0/3.0, 1.0/3.0),
     0.0000001)
   ).toBe(true)
+})
+
+test ('constructOrthogonalBasis will filter zero or undefined vectors', () => {
+  const result: VectorN[] = VectorFunc.constructOrthogonalBasis(
+    VectorN.from(1, 0),
+    VectorN.from(2, 3),
+    VectorN.from(5, 4),
+    VectorN.from(3, 0),
+  )
+
+  expect(result.length).toBe(2)
+  expect(result[0].valuesEqual(VectorN.from(1, 0))).toBe(true)
+  expect(result[1].valuesEqual(VectorN.from(0, 3))).toBe(true)
 })
 
 test ('sampleMean for 4 vectors with 3 dimensions', () => {

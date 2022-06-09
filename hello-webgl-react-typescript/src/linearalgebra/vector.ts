@@ -1,3 +1,5 @@
+import { EPSILON } from "./matrix"
+
 class VectorN {
   n: number // values
 
@@ -36,6 +38,10 @@ class VectorN {
   setData(data: Float32Array): VectorN {
     this.data = data
     return this
+  }
+
+  getData(): Float32Array {
+    return this.data
   }
 
   get(index: number): number {
@@ -187,7 +193,11 @@ export function multiplyWeights(vectors: VectorN[], weights: VectorN): VectorN {
  * @returns vector projected onto the basis
  */
 export function project(basis: VectorN, vector: VectorN): VectorN {
-  const scale = vector.dot(basis) / basis.dot(basis)
+  const denominator = basis.dot(basis)
+  if (denominator < EPSILON){
+    return new VectorN(basis.n).map(() => 0.0)
+  }
+  const scale = vector.dot(basis) / denominator
   return basis.clone().map(value => scale * value)
 }
 
@@ -203,13 +213,15 @@ export function constructOrthogonalBasis(...vectors: VectorN[]): VectorN[] {
   for (let i = 0; i < vectors.length; i++) {
     orthogonalBasis[i] = vectors[i].clone()
     for (let j = 0; j < i; j++) {
-      orthogonalBasis[i] = subtract(
-        orthogonalBasis[i],
-        project(orthogonalBasis[j], vectors[i])
-      )
+      const projected = project(orthogonalBasis[j], vectors[i])
+      orthogonalBasis[i] = subtract(orthogonalBasis[i], projected)
     }
   }
-  return orthogonalBasis
+  return orthogonalBasis.filter(vector => {
+    let foundNonZero = false
+    vector.forEach(value => foundNonZero = foundNonZero || value != 0.0)
+    return foundNonZero
+  })
 }
 
 /**
