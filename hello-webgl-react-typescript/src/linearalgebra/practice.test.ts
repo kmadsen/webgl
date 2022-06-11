@@ -80,3 +80,94 @@ test ('linearCombination will also calculate barycentricCoordinates', () => {
   expect(combination.n).toBe(barycentric.n)
   expect(combination.valuesEqual(barycentric)).toBe(true)
 })
+
+test ('bezierCurve3 square edge', () => {
+  const basis: VectorN[] = [
+    VectorN.from(0.0, 0.0),
+    VectorN.from(1.0, 0.0),
+    VectorN.from(1.0, 1.0),
+  ]
+
+  const result = [0, 0.5, 1].map(value => {
+    return sut.bezierCurve(value, basis)
+  })
+
+  expect(result[0].valuesEqual(basis[0])).toBe(true)
+  expect(result[1].valuesEqual(VectorN.from(0.75, 0.25))).toBe(true)
+  expect(result[2].valuesEqual(basis[2])).toBe(true)
+})
+
+test ('bezierCurve4 square edge', () => {
+  const basis: VectorN[] = [
+    VectorN.from(0.0, 0.0),
+    VectorN.from(1.0, 0.0),
+    VectorN.from(1.0, 1.0),
+    VectorN.from(0.0, 1.0),
+  ]
+
+  const result = [0, 0.25, 0.5, 0.75, 1].map(value => {
+    return sut.bezierCurve(value, basis)
+  })
+
+  expect(result[0].valuesEqual(basis[0])).toBe(true)
+  expect(result[1].valuesEqual(VectorN.from(0.5625, 0.15625))).toBe(true)
+  expect(result[2].valuesEqual(VectorN.from(0.75, 0.5))).toBe(true)
+  expect(result[3].valuesEqual(VectorN.from(0.5625, 0.84375))).toBe(true)
+  expect(result[4].valuesEqual(basis[3])).toBe(true)
+})
+
+test ('bezierCurve4 square edge', () => {
+  const basis: VectorN[] = [
+    VectorN.from(0.0, 0.0),
+    VectorN.from(1.0, 0.0),
+    VectorN.from(1.0, 1.0),
+    VectorN.from(0.0, 1.0),
+  ]
+
+  const result = [0, 0.25, 0.5, 0.75, 1].map(value => {
+    return sut.bezierCurve(value, basis)
+  })
+
+  expect(result[0].valuesEqual(basis[0])).toBe(true)
+  expect(result[1].valuesEqual(VectorN.from(0.5625, 0.15625))).toBe(true)
+  expect(result[2].valuesEqual(VectorN.from(0.75, 0.5))).toBe(true)
+  expect(result[3].valuesEqual(VectorN.from(0.5625, 0.84375))).toBe(true)
+  expect(result[4].valuesEqual(basis[3])).toBe(true)
+})
+
+test ('bezierCurveTangent3 square edge', () => {
+  const basis: VectorN[] = [
+    VectorN.from(0.0, 0.0),
+    VectorN.from(1.0, 0.0),
+    VectorN.from(1.0, 1.0),
+  ]
+
+  const derivative = sut.bezierCurveDerivative(basis)
+  const result = [0, 0.5, 1].map(value => {
+    return sut.bezierCurve(value, derivative)
+  })
+
+  expect(result[0].valuesEqual(VectorN.from(2.0, 0.0))).toBe(true)
+  expect(result[1].valuesEqual(VectorN.from(1.0, 1.0))).toBe(true)
+  expect(result[2].valuesEqual(VectorN.from(0.0, 2.0))).toBe(true)
+})
+
+test ('bezierCurveTangent4 square edge', () => {
+  const basis: VectorN[] = [
+    VectorN.from(0.0, 0.0),
+    VectorN.from(1.0, 0.0),
+    VectorN.from(1.0, 1.0),
+    VectorN.from(0.0, 1.0),
+  ]
+
+  const derivative = sut.bezierCurveDerivative(basis)
+  const result = [0, 0.25, 0.5, 0.75, 1].map(value => {
+    return sut.bezierCurve(value, derivative)
+  })
+
+  expect(result[0].valuesEqual(VectorN.from(3.0, 0.0))).toBe(true)
+  expect(result[1].valuesEqual(VectorN.from(1.5, 1.125))).toBe(true)
+  expect(result[2].valuesEqual(VectorN.from(0.0, 1.5))).toBe(true)
+  expect(result[3].valuesEqual(VectorN.from(-1.5, 1.125))).toBe(true)
+  expect(result[4].valuesEqual(VectorN.from(-3.0, 0.0))).toBe(true)
+})

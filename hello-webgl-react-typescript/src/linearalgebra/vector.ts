@@ -62,7 +62,7 @@ class VectorN {
     }
     for (let i = 0; i < this.n; i++) {
       const actualError = Math.abs(this.data[i] - other.data[i])
-      if (actualError > error) {
+      if (Number.isNaN(actualError) || actualError > error) {
         return false
       }
     }

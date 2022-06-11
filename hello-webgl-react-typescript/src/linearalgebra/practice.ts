@@ -1,5 +1,6 @@
 import VectorN, * as VectorFunc from "./vector";
 import MatrixMxN, * as MatrixFunc from "./matrix";
+import { updateForOf } from "typescript";
 
 /**
  * VectorN and MatrixMxN are calculating overlapping solutions.
@@ -82,4 +83,53 @@ export function barycentricCoordinates(basis: VectorN[], point: VectorN): Vector
   return new VectorN(basis.length).map((_, index) =>
     matrix.getValue(index, matrix.n - 1)
   )
+}
+
+/**
+ * Calculates a bezier curve between N points.
+ *
+ * @param t Time parameter between an inclusive [0,1].
+ * @param points control points for the curve
+ * @returns The point at the specified time
+ */
+export function bezierCurve(t: number, points: VectorN[]): VectorN {
+  const result = new VectorN(points[0].n)
+  points.forEach((value, pindex) => {
+    const weight = bezierCoefficients(points.length - 1, pindex, t)
+    result.map((dimension, dindex) => dimension + weight * value.get(dindex))
+  })
+  return result
+}
+
+/**
+ * Calculates a derivative curve between N points. The direction vector is
+ * N times longer than the direction vector. Calcuating the bezierCurve of
+ * the derivative will provide the tangent of the orignal curve.
+ *
+ * @param points control points for the curve.
+ * @returns the derivative curve
+ */
+export function bezierCurveDerivative(points: VectorN[]): VectorN[] {
+  return Array(...Array(points.length - 1)).map((_value, index) => {
+    const multiple = points.length - 1
+    const direction = VectorFunc.subtract(points[index + 1], points[index])
+    return direction.map(value => multiple * value)
+  })
+}
+
+const factorialMemoize: Record<number, number> = {
+  0: 1, 1: 1, 2: 2, 3: 6, 4: 24, 5: 120, 6: 720, 7: 5040, 8: 40320
+}
+function factorial(n: number): number {
+  if (factorialMemoize[n]) {
+    return factorialMemoize[n]
+  } else {
+    return factorialMemoize[n] = n * factorial(n - 1)
+  }
+}
+
+function bezierCoefficients(n: number, i: number, u: number): number {
+  const lhs = factorial(n) / (factorial(i) * factorial(n - i))
+  const rhs = Math.pow(u, i) * Math.pow(1.0 - u, n - i)
+  return lhs * rhs
 }
