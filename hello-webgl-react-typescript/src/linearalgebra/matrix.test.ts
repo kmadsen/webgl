@@ -21,12 +21,12 @@ test ('create identity matrix', () => {
   expect(matrix.getValue(2, 2)).toBe(1.0)
 })
 
-test ('map to values', () => {
+test ('transform to values', () => {
   const matrix = new MatrixMxN(3, 3).identity()
 
   matrix
-    .map((row, col) => row + col)
-    .map((_row, _col, value) => value + 2)
+    .transform((row, col) => row + col)
+    .transform((_row, _col, value) => value + 2)
   
   expect(matrix.getValue(0, 0)).toBe(2.0)
   expect(matrix.getValue(0, 1)).toBe(3.0)
@@ -266,7 +266,7 @@ test ('echelonReduced example with decimal values', () => {
     .setColumn(3, 50, 30, 20)
     .echelon()
     .echelonReduced()
-    .mapColumn(3, (row, value) => Math.round(value))
+    .transformColumn(3, (row, value) => Math.round(value))
 
   new MatrixMxN(3, 4).setValuesRowOrder(
     1, 0, 0, 226,

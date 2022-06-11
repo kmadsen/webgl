@@ -1,6 +1,6 @@
 import VectorN, * as VectorFunc from "./vector";
 import MatrixMxN, * as MatrixFunc from "./matrix";
-import { updateForOf } from "typescript";
+import SurfaceMxN, * as SurfaceFunc from "./surface";
 
 /**
  * VectorN and MatrixMxN are calculating overlapping solutions.
@@ -31,7 +31,7 @@ export function sampleCovariance(...vector: VectorN[]): MatrixMxN {
 
   // Insert the difference between the vector and mean into a matrix
   const B: MatrixMxN = new MatrixMxN(vector[0].n, vector.length)
-    .map((row, column) => vector[column].get(row) - sampleMean.get(row))
+    .transform((row, column) => vector[column].get(row) - sampleMean.get(row))
 
   // Calculate the (sample) covariance matrix
   return MatrixFunc.multiply(B, MatrixFunc.transpose(B))
@@ -76,13 +76,27 @@ export function barycentricCoordinates(basis: VectorN[], point: VectorN): Vector
       matrix.setValue(row, column, value)
     })
   }
-  matrix.mapColumn(basis.length, row => point.get(row))
+  matrix.transformColumn(basis.length, row => point.get(row))
 
   // Reduce into echelon form and return the right most column.
   matrix.echelon().echelonReduced()
   return new VectorN(basis.length).map((_, index) =>
     matrix.getValue(index, matrix.n - 1)
   )
+}
+
+export function vectorRowMatrix(...vectors: VectorN[]): MatrixMxN {
+  return new MatrixMxN(vectors.length, vectors[0].n)
+    .transform((row, column) => {
+      return vectors[row].get(column)
+    })
+}
+
+export function vectorColumnMatrix(...vectors: VectorN[]): MatrixMxN {
+  return new MatrixMxN(vectors[0].n, vectors.length)
+    .transform((row, column) => {
+      return vectors[column].get(row)
+    })
 }
 
 /**
@@ -92,10 +106,10 @@ export function barycentricCoordinates(basis: VectorN[], point: VectorN): Vector
  * @param points control points for the curve
  * @returns The point at the specified time
  */
-export function bezierCurve(t: number, points: VectorN[]): VectorN {
+export function bezierCurve(points: VectorN[], t: number): VectorN {
   const result = new VectorN(points[0].n)
   points.forEach((value, pindex) => {
-    const weight = bezierCoefficients(points.length - 1, pindex, t)
+    const weight = bezierCoefficient(points.length - 1, pindex, t)
     result.map((dimension, dindex) => dimension + weight * value.get(dindex))
   })
   return result
@@ -117,8 +131,59 @@ export function bezierCurveDerivative(points: VectorN[]): VectorN[] {
   })
 }
 
+/**
+ * Calculates a bezier curve surface for an MxN points.
+ *
+ * @param u parameter between an inclusive [0,1].
+ * @param v parameter between an inclusive [0,1].
+ * @returns The point at the specified location
+ */
+export function bezierSurface(surface: SurfaceMxN, u: number, v: number): VectorN {
+  const coefficentSurface = surface.map((_value, row, col) => {
+    return VectorN.from(
+      bezierCoefficient(surface.m - 1, row, u),
+      bezierCoefficient(surface.n - 1, col, v)
+    )
+  })
+  return surface.reduce((previous, current, row, column) => {
+    const coefficent = coefficentSurface.getValue(row, column)
+    const weight = coefficent.get(0) * coefficent.get(1)
+    return previous.map((dimension, dIndex) =>
+      dimension + weight * current.get(dIndex)
+    )
+  }, new VectorN(surface.getValue(0, 0).n))
+}
+
+export function bezierSurfaceDerivativeU(surface: SurfaceMxN): SurfaceMxN {
+  const um = surface.m - 1
+  return new SurfaceMxN(um, surface.n)
+    .transform((_value, row, col) => {
+      const direction = VectorFunc.subtract(
+        surface.getValue(row + 1, col), surface.getValue(row, col)
+      )
+      return direction.map(value => um * value)
+    })
+}
+
+export function bezierSurfaceDerivativeV(surface: SurfaceMxN): SurfaceMxN {
+  const un = surface.n - 1
+  return new SurfaceMxN(surface.m, un)
+    .transform((_value, row, col) => {
+      const direction = VectorFunc.subtract(
+        surface.getValue(row, col + 1), surface.getValue(row, col)
+      )
+      return direction.map(value => un * value)
+    })
+}
+
+export function bezierCoefficient(n: number, i: number, u: number): number {
+  const lhs = factorial(n) / (factorial(i) * factorial(n - i))
+  const rhs = Math.pow(u, i) * Math.pow(1.0 - u, n - i)
+  return lhs * rhs
+}
+
 const factorialMemoize: Record<number, number> = {
-  0: 1, 1: 1, 2: 2, 3: 6, 4: 24, 5: 120, 6: 720, 7: 5040, 8: 40320
+  0:1, 1:1, 2:2, 3:6, 4:24, 5:120, 6:720, 7:5040, 8:40320
 }
 function factorial(n: number): number {
   if (factorialMemoize[n]) {
@@ -126,10 +191,4 @@ function factorial(n: number): number {
   } else {
     return factorialMemoize[n] = n * factorial(n - 1)
   }
-}
-
-function bezierCoefficients(n: number, i: number, u: number): number {
-  const lhs = factorial(n) / (factorial(i) * factorial(n - i))
-  const rhs = Math.pow(u, i) * Math.pow(1.0 - u, n - i)
-  return lhs * rhs
 }
