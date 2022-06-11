@@ -98,13 +98,36 @@ class VectorN {
   }
 
   /**
+   * To help with debugging, get a string for the vector
+   *
+   * @returns a string
+   */
+  valuesString(): string {
+    return this.data.join(", ")
+  }
+
+  /**
+   * To help with debugging, get a string for the vector
+   * with fixed decimal p
+   *
+   * @param fractionDigits Number of digits after the decimal point. Must be in the range 0 - 20, inclusive.
+   * @returns a string
+   */
+  valuesStringFixed(fractionDigits: number): string {
+    const display: Array<string> = []
+    this.data.forEach((value, index) =>
+      display[index] = value.toFixed(fractionDigits)
+    )
+    return display.join(", ")
+  }
+
+  /**
    * To help with debugging, log the matrix to the console
    *
    * @returns return this to chain operations
    */
   log(): VectorN {
-    const values = this.data.join(", ")
-    console.log(`N:${this.n}\n${values}`)
+    console.log(`N:${this.n}\n${this.valuesString()}`)
     return this;
   }
 
@@ -116,11 +139,8 @@ class VectorN {
    * @returns return this to chain operations
    */
   logFixed(fractionDigits: number): VectorN {
-    const display: Array<string> = []
-    this.data.forEach((value, index) =>
-      display[index] = value.toFixed(fractionDigits)
-    )
-    console.log(`N:${this.n}\n${display.join(", ")}`)
+    const valuesString = this.valuesStringFixed(fractionDigits)
+    console.log(`N:${this.n}\n${valuesString}`)
     return this;
   }
 }

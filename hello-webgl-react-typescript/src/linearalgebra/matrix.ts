@@ -130,12 +130,13 @@ class MatrixMxN {
   }
 
   /**
-   * Apply a function on each element of the matrix. Update each element with a new value.
+   * Apply a function on each element of the matrix.
+   * Update each element with a new value.
    *
    * @param compute apply function on the value
    * @returns return this to chain operations
    */
-  map(compute: (row: number, col: number, value: number) => number): MatrixMxN {
+  transform(compute: (row: number, col: number, value: number) => number): MatrixMxN {
     for (let i = 0; i < this.m; i++) {
       for (let j = 0; j < this.n; j++) {
         const index = i * this.n + j 
@@ -150,7 +151,7 @@ class MatrixMxN {
    * @param compute apply function on the value
    * @returns return this to chain operations 
    */
-  mapRow(row: number, compute: (column: number, value: number) => number): MatrixMxN {
+  transformRow(row: number, compute: (column: number, value: number) => number): MatrixMxN {
     for (let j = 0; j < this.n; j++) {
       const index = row * this.n + j 
       this.data[index] = compute(j, this.data[index])
@@ -163,7 +164,7 @@ class MatrixMxN {
    * @param compute apply function on the value
    * @returns return this to chain operations
    */
-  mapColumn(column: number, compute: (row: number, value: number) => number): MatrixMxN {
+  transformColumn(column: number, compute: (row: number, value: number) => number): MatrixMxN {
     for (let i = 0; i < this.m; i++) {
       const index = i * this.n + column 
       this.data[index] = compute(i, this.data[index])
@@ -178,7 +179,7 @@ class MatrixMxN {
    * @param compute apply function on the value
    * @returns return this to chain operations
    */
-  mapDiagonal(compute: (index: number, value: number) => number): MatrixMxN {
+  transformDiagonal(compute: (index: number, value: number) => number): MatrixMxN {
     const dimension = Math.min(this.m, this.n);
     for (let i = 0; i < dimension; i++) {
       const index = i * this.n + i;
@@ -192,7 +193,7 @@ class MatrixMxN {
    * @returns return this to chain operations
    */
   add(matrix: MatrixMxN): MatrixMxN {
-    this.map((row, column, value) => value + matrix.getValue(row, column))
+    this.transform((row, column, value) => value + matrix.getValue(row, column))
     return this
   }
 
@@ -201,7 +202,7 @@ class MatrixMxN {
    * @returns return this to chain operations
    */
   subtract(matrix: MatrixMxN): MatrixMxN {
-    this.map((row, column, value) => value - matrix.getValue(row, column))
+    this.transform((row, column, value) => value - matrix.getValue(row, column))
     return this
   }
 
@@ -210,7 +211,7 @@ class MatrixMxN {
    * @returns return this to chain operations
    */
   multiply(scalar: number): MatrixMxN {
-    this.map((_row, _column, value) => value * scalar)
+    this.transform((_row, _column, value) => value * scalar)
     return this
   }
 
@@ -281,7 +282,7 @@ class MatrixMxN {
         if (pivotValue != 0) {
           if (value != 0) {
             const multiple = -value / pivotValue
-            this.mapRow(row, (column, rowValue) => {
+            this.transformRow(row, (column, rowValue) => {
               const pivotRowValue = this.getValue(pivotRow, column)
               const resultRowValue = rowValue + pivotRowValue * multiple
               return groom(resultRowValue)
@@ -316,7 +317,7 @@ class MatrixMxN {
         let value = this.getValue(pivotRow, pivotColumn)
         if (value != 1.0) {
           const multiple = 1 / value
-          this.mapRow(pivotRow, (_, rowValue) => {
+          this.transformRow(pivotRow, (_, rowValue) => {
             return groom(rowValue * multiple)
           })
           value = this.getValue(pivotRow, pivotColumn)
@@ -330,7 +331,7 @@ class MatrixMxN {
           this.forRow(pivotRow, (column, value) => {
             vector[column] = value
           })
-          this.mapRow(i, (column, value) => {
+          this.transformRow(i, (column, value) => {
             return groom(value + vector[column] * multiple)
           })
         }
@@ -400,12 +401,12 @@ class MatrixMxN {
     iterations: number,
     eigenValue: number
   ): Array<Float32Array> {
-    const nextVector = new MatrixMxN(this.m, 1).map(() => 1.0)
+    const nextVector = new MatrixMxN(this.m, 1).transform(() => 1.0)
     return Array(...Array(iterations)).map(() => {
       const maximum = Math.max(...nextVector.data)
-      nextVector.map((_row, _col, value) => value / maximum)
+      nextVector.transform((_row, _col, value) => value / maximum)
       const inversed = inverse(
-        this.clone().mapDiagonal((i, value) => {
+        this.clone().transformDiagonal((i, value) => {
           return value - eigenValue
         })
       )
@@ -416,39 +417,59 @@ class MatrixMxN {
   }
 
   /**
-   * To help with debugging, log the matrix to the console
+   * To help with debugging, get a string for the matrix
    *
-   * @returns return this to chain operations
+   * @returns a string
    */
-  log(): MatrixMxN {
-    const rows = [...Array(this.m)]
+  valuesString(): string {
+    return [...Array(this.m)]
       .map((_, i) => i * this.n)
       .flatMap(rowIndex => {
         return this.data.slice(rowIndex, rowIndex + this.n).join(", ")
       })
       .join("\n")
-    console.log(`M:${this.m} N:${this.n}\n${rows}`)
-    return this;
   }
 
   /**
-   * To help with debugging, log the matrix to the console with fixed
-   * decimal p
+   * To help with debugging, get a string for the matrix
+   * with fixed decimal p
    *
-   * @param fixed call toFixed on each element
-   * @returns return this to chain operations
+   * @param fractionDigits Number of digits after the decimal point. Must be in the range 0 - 20, inclusive.
+   * @returns a string
    */
-  logFixed(fixed: number): MatrixMxN {
+  valuesStringFixed(fractionDigits: number): string {
     const rows = [...Array(this.m)]
       .map((_, i) => i * this.n)
       .flatMap(rowIndex => {
         const display: Array<string> = []
         this.data.slice(rowIndex, rowIndex + this.n)
-          .forEach((value, index) => display[index] = value.toFixed(fixed))
+          .forEach((value, index) => display[index] = value.toFixed(fractionDigits))
         return display.join(", ")
       })
       .join("\n")
-    console.log(`M:${this.m} N:${this.n}\n${rows}`)
+    return `M:${this.m} N:${this.n}\n${rows}`
+  }
+
+  /**
+   * To help with debugging, log the matrix to the console
+   *
+   * @returns return this to chain operations
+   */
+  log(): MatrixMxN {
+    console.log(`M:${this.m} N:${this.n}\n${this.valuesString()}`)
+    return this;
+  }
+
+  /**
+   * To help with debugging, log the matrix to the console
+   * with fixed decimal p
+   *
+   * @param fractionDigits Number of digits after the decimal point. Must be in the range 0 - 20, inclusive.
+   * @returns return this to chain operations
+   */
+  logFixed(fractionDigits: number): MatrixMxN {
+    const valuesString = this.valuesStringFixed(fractionDigits)
+    console.log(`M:${this.m} N:${this.n}\n${valuesString}`)
     return this;
   }
 }
@@ -487,7 +508,7 @@ export function dot(rM: MatrixMxN, r: number, cM: MatrixMxN, c: number) {
  */
 export function multiply(lhs: MatrixMxN, rhs: MatrixMxN): MatrixMxN {
   const result = new MatrixMxN(lhs.m, rhs.n)
-  result.map((row, column) => {
+  result.transform((row, column) => {
     return dot(lhs, row, rhs, column)
   })
   return result
@@ -504,7 +525,7 @@ export function multiply(lhs: MatrixMxN, rhs: MatrixMxN): MatrixMxN {
  */
 export function transpose(matrix: MatrixMxN): MatrixMxN {
   return new MatrixMxN(matrix.n, matrix.m)
-    .map((row, column) => matrix.getValue(column, row))
+    .transform((row, column) => matrix.getValue(column, row))
 }
 
 /**
@@ -519,7 +540,7 @@ export function adjoint(matrix: MatrixMxN): MatrixMxN {
   const result = matrix.clone()
   return result.forEach((row, column) => {
     const cellMatrix = new MatrixMxN(matrix.m - 1)
-      .map((cellRow, cellColumn) => matrix.getValue(
+      .transform((cellRow, cellColumn) => matrix.getValue(
         cellRow >= row ? cellRow + 1 : cellRow,
         cellColumn >= column ? cellColumn + 1 : cellColumn
       ))
@@ -556,7 +577,7 @@ export function changeOfCoordiantes(from: MatrixMxN, to: MatrixMxN): MatrixMxN {
   augmented.echelon().echelonReduced()
 
   return new MatrixMxN(from.m)
-    .map((row, column) => augmented.getValue(row, to.n + column))
+    .transform((row, column) => augmented.getValue(row, to.n + column))
 }
 
 /**
@@ -577,12 +598,12 @@ export function steadyState(matrix: MatrixMxN): MatrixMxN {
 
   let sum = 0.0
   return new MatrixMxN(matrix.m, 1)
-    .mapColumn(0, index => {
+    .transformColumn(0, index => {
       const value = intermediate.getValue(index, matrix.n - 1)
       return value == 0 ? 1.0 : -value
     })
     .forColumn(0, (_, value) => sum += value)
-    .mapColumn(0, (_, value) => value / sum)
+    .transformColumn(0, (_, value) => value / sum)
 }
 
 export function quadratic(a: number, b: number, c: number): number[] {

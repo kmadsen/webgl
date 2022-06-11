@@ -89,8 +89,8 @@ test ('constructOrthogonalBasis for 3 vectors with 4 dimensions', () => {
     VectorN.from(0.0, 0.0, 1.0, 1.0),
   )
 
-  expect(basis[0].valuesEqual(VectorN.from(1.0, 1.0, 1.0, 1.0), 0.0)).toBe(true)
-  expect(basis[1].valuesEqual(VectorN.from(-3/4, 1/4, 1/4, 1/4), 0.0)).toBe(true)
+  expect(basis[0]).toEqual(VectorN.from(1.0, 1.0, 1.0, 1.0))
+  expect(basis[1]).toEqual(VectorN.from(-3/4, 1/4, 1/4, 1/4))
   expect(basis[2].valuesEqual(
     VectorN.from(0.0, -2.0/3.0, 1.0/3.0, 1.0/3.0),
     0.0000001)
@@ -106,8 +106,8 @@ test ('constructOrthogonalBasis will filter zero or undefined vectors', () => {
   )
 
   expect(result.length).toBe(2)
-  expect(result[0].valuesEqual(VectorN.from(1, 0))).toBe(true)
-  expect(result[1].valuesEqual(VectorN.from(0, 3))).toBe(true)
+  expect(result[0]).toEqual(VectorN.from(1, 0))
+  expect(result[1]).toEqual(VectorN.from(0, 3))
 })
 
 test ('sampleMean for 4 vectors with 3 dimensions', () => {
@@ -118,7 +118,7 @@ test ('sampleMean for 4 vectors with 3 dimensions', () => {
     VectorN.from(8, 4, 5),
   )
 
-  expect(result.valuesEqual(VectorN.from(5, 4, 5))).toBe(true)
+  expect(result).toEqual(VectorN.from(5, 4, 5))
 })
 
 test ('sampleCovariance for 4 vectors with 3 dimensions', () => {
@@ -129,5 +129,5 @@ test ('sampleCovariance for 4 vectors with 3 dimensions', () => {
     VectorN.from(8, 4, 5),
   )
 
-  expect(result.valuesEqual(VectorN.from(5, 4, 5))).toBe(true)
+  expect(result).toEqual(VectorN.from(5, 4, 5))
 })
