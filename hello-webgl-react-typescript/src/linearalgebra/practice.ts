@@ -31,7 +31,7 @@ export function sampleCovariance(...vector: VectorN[]): MatrixMxN {
 
   // Insert the difference between the vector and mean into a matrix
   const B: MatrixMxN = new MatrixMxN(vector[0].n, vector.length)
-    .transform((row, column) => vector[column].get(row) - sampleMean.get(row))
+    .transform((_value, row, column) => vector[column].get(row) - sampleMean.get(row))
 
   // Calculate the (sample) covariance matrix
   return MatrixFunc.multiply(B, MatrixFunc.transpose(B))
@@ -76,25 +76,37 @@ export function barycentricCoordinates(basis: VectorN[], point: VectorN): Vector
       matrix.setValue(row, column, value)
     })
   }
-  matrix.transformColumn(basis.length, row => point.get(row))
+  matrix.transformColumn(basis.length, (_value, row) => point.get(row))
 
   // Reduce into echelon form and return the right most column.
   matrix.echelon().echelonReduced()
-  return new VectorN(basis.length).map((_, index) =>
+  return new VectorN(basis.length).transform((_, index) =>
     matrix.getValue(index, matrix.n - 1)
   )
 }
 
+/**
+ * Copies the vectors into a matrix where each row is a vector
+ * 
+ * @param vectors input vectors
+ * @returns matrix with vectors in row form
+ */
 export function vectorRowMatrix(...vectors: VectorN[]): MatrixMxN {
   return new MatrixMxN(vectors.length, vectors[0].n)
-    .transform((row, column) => {
+    .transform((_value, row, column) => {
       return vectors[row].get(column)
     })
 }
 
-export function vectorColumnMatrix(...vectors: VectorN[]): MatrixMxN {
+/**
+ * Copies the vectors into a matrix where each row is a column
+ * 
+ * @param vectors input vectors
+ * @returns matrix with vectors in column form
+ */
+ export function vectorColumnMatrix(...vectors: VectorN[]): MatrixMxN {
   return new MatrixMxN(vectors[0].n, vectors.length)
-    .transform((row, column) => {
+    .transform((_value, row, column) => {
       return vectors[column].get(row)
     })
 }
@@ -110,7 +122,7 @@ export function bezierCurve(points: VectorN[], t: number): VectorN {
   const result = new VectorN(points[0].n)
   points.forEach((value, pindex) => {
     const weight = bezierCoefficient(points.length - 1, pindex, t)
-    result.map((dimension, dindex) => dimension + weight * value.get(dindex))
+    result.transform((dimension, dindex) => dimension + weight * value.get(dindex))
   })
   return result
 }
@@ -127,7 +139,7 @@ export function bezierCurveDerivative(points: VectorN[]): VectorN[] {
   return Array(...Array(points.length - 1)).map((_value, index) => {
     const multiple = points.length - 1
     const direction = VectorFunc.subtract(points[index + 1], points[index])
-    return direction.map(value => multiple * value)
+    return direction.transform(value => multiple * value)
   })
 }
 
@@ -148,7 +160,7 @@ export function bezierSurface(surface: SurfaceMxN, u: number, v: number): Vector
   return surface.reduce((previous, current, row, column) => {
     const coefficent = coefficentSurface.getValue(row, column)
     const weight = coefficent.get(0) * coefficent.get(1)
-    return previous.map((dimension, dIndex) =>
+    return previous.transform((dimension, dIndex) =>
       dimension + weight * current.get(dIndex)
     )
   }, new VectorN(surface.getValue(0, 0).n))
@@ -161,7 +173,7 @@ export function bezierSurfaceDerivativeU(surface: SurfaceMxN): SurfaceMxN {
       const direction = VectorFunc.subtract(
         surface.getValue(row + 1, col), surface.getValue(row, col)
       )
-      return direction.map(value => um * value)
+      return direction.transform(value => um * value)
     })
 }
 
@@ -172,7 +184,7 @@ export function bezierSurfaceDerivativeV(surface: SurfaceMxN): SurfaceMxN {
       const direction = VectorFunc.subtract(
         surface.getValue(row, col + 1), surface.getValue(row, col)
       )
-      return direction.map(value => un * value)
+      return direction.transform(value => un * value)
     })
 }
 

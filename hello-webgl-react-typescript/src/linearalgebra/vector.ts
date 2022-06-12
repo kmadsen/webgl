@@ -69,15 +69,34 @@ class VectorN {
     return true;
   }
 
-  map(compute: (value: number, index: number) => number): VectorN {
+  /**
+   * Apply a function on each element of the vector.
+   * Update each element with a new value.
+   *
+   * @param computefn apply function on the value
+   * @returns return this to chain operations
+   */
+  transform(computefn: (value: number, index: number) => number): VectorN {
     this.data.forEach((value, index) => {
-      this.data[index] = compute(value, index)
+      this.data[index] = computefn(value, index)
     })
     return this;
   }
 
+  /**
+   * 
+   * Apply a function on each element of the surface.
+   * Return a new vector with mapped elements.
+   *
+   * @param computefn apply function on the value
+   * @returns return a new vector with the operation results
+   */
+  map(computefn: (value: number, index: number) => number): VectorN {
+    return this.clone().transform(computefn)
+  } 
+
   zip(other: VectorN, compute: (lhs: number, rhs: number, index: number) => number): VectorN {
-    return this.clone().map((zipValue, zipIndex) => {
+    return this.map((zipValue, zipIndex) => {
       return compute(zipValue, other.data[zipIndex], zipIndex)
     })
   }
@@ -94,7 +113,7 @@ class VectorN {
 
   normalize(): VectorN {
     const magnitude = this.magnitude()
-    return this.map(value => value / magnitude)
+    return this.transform(value => value / magnitude)
   }
 
   /**
@@ -148,7 +167,7 @@ class VectorN {
 export function add(...vector: VectorN[]): VectorN {
   const result = new VectorN(vector[0].n)
   vector.forEach((currentVector) =>
-    result.map((value, index) => value + currentVector.get(index))
+    result.transform((value, index) => value + currentVector.get(index))
   )
   return result
 }
@@ -215,7 +234,7 @@ export function linearCombination(basis: VectorN[], vector: VectorN): VectorN {
  */
 export function multiplyWeights(vectors: VectorN[], weights: VectorN): VectorN {
   const result = vectors.map((value, index) => {
-    return value.clone().map(value => weights.get(index) * value)
+    return value.map(value => weights.get(index) * value)
   })
   return add(...result)
 }
@@ -232,10 +251,10 @@ export function multiplyWeights(vectors: VectorN[], weights: VectorN): VectorN {
 export function project(basis: VectorN, vector: VectorN): VectorN {
   const denominator = basis.dot(basis)
   if (denominator < EPSILON){
-    return new VectorN(basis.n).map(() => 0.0)
+    return new VectorN(basis.n).transform(() => 0.0)
   }
   const scale = vector.dot(basis) / denominator
-  return basis.clone().map(value => scale * value)
+  return basis.map(value => scale * value)
 }
 
 /**
@@ -270,7 +289,7 @@ export function constructOrthogonalBasis(...vectors: VectorN[]): VectorN[] {
  */
 export function sampleMean(...vector: VectorN[]): VectorN {
   const fraction = 1.0 / vector.length
-  return add(...vector).map(value => value * fraction)
+  return add(...vector).transform(value => value * fraction)
 }
 
 export default VectorN

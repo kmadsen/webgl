@@ -91,7 +91,7 @@ class MatrixMxN {
   }
 
   setPartition(row: number, column: number, matrix: MatrixMxN): MatrixMxN {
-    matrix.forEach((i, j, value) => {
+    matrix.forEach((value, i, j) => {
       const index = (row + i) * this.n + column + j
       this.data[index] = value
     })
@@ -101,14 +101,14 @@ class MatrixMxN {
   /**
    * Apply a function on each element of the matrix
    *
-   * @param compute apply function on the value
+   * @param computefn apply function on the value
    * @returns return this to chain operations
    */
-  forEach(compute: (row: number, column: number, value: number) => void): MatrixMxN {
+  forEach(computefn: (value: number, row: number, column: number) => void): MatrixMxN {
     for (let i = 0; i < this.m; i++) {
       for (let j = 0; j < this.n; j++) {
         const index = i * this.n + j
-        compute(i, j, this.data[index])
+        computefn(this.data[index], i, j)
       }
     }
     return this;
@@ -117,14 +117,14 @@ class MatrixMxN {
   /**
    * Apply a function on each diagonal element of the matrix
    *
-   * @param compute apply function on the value
+   * @param computefn apply function on the value
    * @returns return this to chain operations
    */
-  forDiagonal(compute: (index: number, value: number) => void): MatrixMxN {
+  forDiagonal(computefn: (value: number, index: number) => void): MatrixMxN {
     const dimension = Math.min(this.m, this.n);
     for (let i = 0; i < dimension; i++) {
       const index = i * this.n + i;
-      compute(i, this.data[index])
+      computefn(this.data[index], i)
     }
     return this;
   }
@@ -133,14 +133,14 @@ class MatrixMxN {
    * Apply a function on each element of the matrix.
    * Update each element with a new value.
    *
-   * @param compute apply function on the value
+   * @param computefn apply function on the value
    * @returns return this to chain operations
    */
-  transform(compute: (row: number, col: number, value: number) => number): MatrixMxN {
+  transform(computefn: (value: number, row: number, col: number) => number): MatrixMxN {
     for (let i = 0; i < this.m; i++) {
       for (let j = 0; j < this.n; j++) {
         const index = i * this.n + j 
-        this.data[index] = compute(i, j, this.data[index])
+        this.data[index] = computefn(this.data[index], i, j)
       }
     }
     return this;
@@ -148,26 +148,26 @@ class MatrixMxN {
 
     /**
    * @param row index of the row vector
-   * @param compute apply function on the value
+   * @param computefn apply function on the value
    * @returns return this to chain operations 
    */
-  transformRow(row: number, compute: (column: number, value: number) => number): MatrixMxN {
+  transformRow(row: number, computefn: (value: number, column: number) => number): MatrixMxN {
     for (let j = 0; j < this.n; j++) {
       const index = row * this.n + j 
-      this.data[index] = compute(j, this.data[index])
+      this.data[index] = computefn(this.data[index], j)
     }
     return this;
   }
 
   /**
    * @param column index of the column vector 
-   * @param compute apply function on the value
+   * @param computefn apply function on the value
    * @returns return this to chain operations
    */
-  transformColumn(column: number, compute: (row: number, value: number) => number): MatrixMxN {
+  transformColumn(column: number, computefn: (value: number, row: number) => number): MatrixMxN {
     for (let i = 0; i < this.m; i++) {
       const index = i * this.n + column 
-      this.data[index] = compute(i, this.data[index])
+      this.data[index] = computefn(this.data[index], i)
     }
     return this;
   }
@@ -176,14 +176,14 @@ class MatrixMxN {
    * Apply a function on each diagonal element of the matrix.
    * This to help compute operations with the identity.
    *
-   * @param compute apply function on the value
+   * @param computefn apply function on the value
    * @returns return this to chain operations
    */
-  transformDiagonal(compute: (index: number, value: number) => number): MatrixMxN {
+  transformDiagonal(computefn: (value: number, index: number) => number): MatrixMxN {
     const dimension = Math.min(this.m, this.n);
     for (let i = 0; i < dimension; i++) {
       const index = i * this.n + i;
-      this.data[index] = compute(i, this.data[index])
+      this.data[index] = computefn(this.data[index], i)
     }
     return this;
   }
@@ -193,7 +193,7 @@ class MatrixMxN {
    * @returns return this to chain operations
    */
   add(matrix: MatrixMxN): MatrixMxN {
-    this.transform((row, column, value) => value + matrix.getValue(row, column))
+    this.transform((value, row, column) => value + matrix.getValue(row, column))
     return this
   }
 
@@ -202,41 +202,41 @@ class MatrixMxN {
    * @returns return this to chain operations
    */
   subtract(matrix: MatrixMxN): MatrixMxN {
-    this.transform((row, column, value) => value - matrix.getValue(row, column))
+    this.transform((value, row, column) => value - matrix.getValue(row, column))
     return this
   }
 
   /**
-   * @param matrix the matrix to subtract
+   * @param scalar multiply every value by a number
    * @returns return this to chain operations
    */
   multiply(scalar: number): MatrixMxN {
-    this.transform((_row, _column, value) => value * scalar)
+    this.transform(value => value * scalar)
     return this
   }
 
   /**
    * @param row index of the row vector
-   * @param compute apply function on the value
+   * @param computefn apply function on the value
    * @returns return this to chain operations 
    */
-  forRow(row: number, compute: (column: number, value: number) => void): MatrixMxN {
+  forRow(row: number, computefn: (value: number, column: number) => void): MatrixMxN {
     for (let j = 0; j < this.n; j++) {
       const index = row * this.n + j 
-      compute(j, this.data[index])
+      computefn(this.data[index], j)
     }
     return this;
   }
 
   /**
    * @param column index of the column vector 
-   * @param compute apply function on the value
+   * @param computefn apply function on the value
    * @returns return this to chain operations
    */
-  forColumn(column: number, compute: (row: number, value: number) => void): MatrixMxN {
+  forColumn(column: number, computefn: (value: number, row: number) => void): MatrixMxN {
     for (let i = 0; i < this.m; i++) {
       const index = i * this.n + column 
-      compute(i, this.data[index])
+      computefn(this.data[index], i)
     }
     return this;
   }
@@ -248,7 +248,7 @@ class MatrixMxN {
    * @param row2 row index to swap
    */
   swapRows(row1: number, row2: number) {
-    this.forRow(row1, (column, value) => {
+    this.forRow(row1, (value, column) => {
       this.setValue(row1, column, this.getValue(row2, column))
       this.setValue(row2, column, value)
     })
@@ -282,7 +282,7 @@ class MatrixMxN {
         if (pivotValue != 0) {
           if (value != 0) {
             const multiple = -value / pivotValue
-            this.transformRow(row, (column, rowValue) => {
+            this.transformRow(row, (rowValue, column) => {
               const pivotRowValue = this.getValue(pivotRow, column)
               const resultRowValue = rowValue + pivotRowValue * multiple
               return groom(resultRowValue)
@@ -317,7 +317,7 @@ class MatrixMxN {
         let value = this.getValue(pivotRow, pivotColumn)
         if (value != 1.0) {
           const multiple = 1 / value
-          this.transformRow(pivotRow, (_, rowValue) => {
+          this.transformRow(pivotRow, rowValue => {
             return groom(rowValue * multiple)
           })
           value = this.getValue(pivotRow, pivotColumn)
@@ -328,10 +328,10 @@ class MatrixMxN {
           const rowValue = this.getValue(i, pivotColumn)
           const multiple = -rowValue * value
           const vector = new Float32Array(this.n)
-          this.forRow(pivotRow, (column, value) => {
+          this.forRow(pivotRow, (value, column) => {
             vector[column] = value
           })
-          this.transformRow(i, (column, value) => {
+          this.transformRow(i, (value, column) => {
             return groom(value + vector[column] * multiple)
           })
         }
@@ -376,7 +376,7 @@ class MatrixMxN {
     const nextVector = Float32Array.from(eigenVector)
     const tempVector = new Float32Array(eigenVector.length)
     return Array(...Array(iteratons)).map(() => {
-      this.forColumn(0, row => {
+      this.forColumn(0, (_value, row) => {
         let sum = 0.0
         nextVector.forEach((vectorValue, vectorIndex) => {
           sum += vectorValue * this.getValue(row, vectorIndex)
@@ -404,9 +404,9 @@ class MatrixMxN {
     const nextVector = new MatrixMxN(this.m, 1).transform(() => 1.0)
     return Array(...Array(iterations)).map(() => {
       const maximum = Math.max(...nextVector.data)
-      nextVector.transform((_row, _col, value) => value / maximum)
+      nextVector.transform(value => value / maximum)
       const inversed = inverse(
-        this.clone().transformDiagonal((i, value) => {
+        this.clone().transformDiagonal(value => {
           return value - eigenValue
         })
       )
@@ -495,7 +495,7 @@ function groom(value: number): number {
  */
 export function dot(rM: MatrixMxN, r: number, cM: MatrixMxN, c: number) {
   let sum = 0.0
-  rM.forRow(r, (column: number, value: number) => {
+  rM.forRow(r, (value, column) => {
     sum += value * cM.getValue(column, c)
   })
   return sum
@@ -508,7 +508,7 @@ export function dot(rM: MatrixMxN, r: number, cM: MatrixMxN, c: number) {
  */
 export function multiply(lhs: MatrixMxN, rhs: MatrixMxN): MatrixMxN {
   const result = new MatrixMxN(lhs.m, rhs.n)
-  result.transform((row, column) => {
+  result.transform((_value, row, column) => {
     return dot(lhs, row, rhs, column)
   })
   return result
@@ -525,7 +525,7 @@ export function multiply(lhs: MatrixMxN, rhs: MatrixMxN): MatrixMxN {
  */
 export function transpose(matrix: MatrixMxN): MatrixMxN {
   return new MatrixMxN(matrix.n, matrix.m)
-    .transform((row, column) => matrix.getValue(column, row))
+    .transform((_value, row, column) => matrix.getValue(column, row))
 }
 
 /**
@@ -538,9 +538,9 @@ export function transpose(matrix: MatrixMxN): MatrixMxN {
  */
 export function adjoint(matrix: MatrixMxN): MatrixMxN {
   const result = matrix.clone()
-  return result.forEach((row, column) => {
+  return result.forEach((_value, row, column) => {
     const cellMatrix = new MatrixMxN(matrix.m - 1)
-      .transform((cellRow, cellColumn) => matrix.getValue(
+      .transform((_value, cellRow, cellColumn) => matrix.getValue(
         cellRow >= row ? cellRow + 1 : cellRow,
         cellColumn >= column ? cellColumn + 1 : cellColumn
       ))
@@ -570,14 +570,14 @@ export function inverse(matrix: MatrixMxN): MatrixMxN {
  */
 export function changeOfCoordiantes(from: MatrixMxN, to: MatrixMxN): MatrixMxN {
   const augmented = new MatrixMxN(from.m, from.n + to.n)
-  to.forEach((row, column, value) => augmented
+  to.forEach((value, row, column) => augmented
     .setValue(row, column, value))
-  from.forEach((row, column, value) => augmented
+  from.forEach((value, row, column) => augmented
     .setValue(row, to.n + column, value))
   augmented.echelon().echelonReduced()
 
   return new MatrixMxN(from.m)
-    .transform((row, column) => augmented.getValue(row, to.n + column))
+    .transform((_value, row, column) => augmented.getValue(row, to.n + column))
 }
 
 /**
@@ -590,7 +590,7 @@ export function changeOfCoordiantes(from: MatrixMxN, to: MatrixMxN): MatrixMxN {
 export function steadyState(matrix: MatrixMxN): MatrixMxN {
   const intermediate = new MatrixMxN(matrix.m, matrix.n + 1)
     .identity()
-  matrix.forEach((row, column, value) => {
+  matrix.forEach((value, row, column) => {
     const delta = value - intermediate.getValue(row, column)
     intermediate.setValue(row, column, delta)
   })
@@ -598,12 +598,12 @@ export function steadyState(matrix: MatrixMxN): MatrixMxN {
 
   let sum = 0.0
   return new MatrixMxN(matrix.m, 1)
-    .transformColumn(0, index => {
+    .transformColumn(0, (_value, index) => {
       const value = intermediate.getValue(index, matrix.n - 1)
       return value == 0 ? 1.0 : -value
     })
-    .forColumn(0, (_, value) => sum += value)
-    .transformColumn(0, (_, value) => value / sum)
+    .forColumn(0, value => sum += value)
+    .transformColumn(0, value => value / sum)
 }
 
 export function quadratic(a: number, b: number, c: number): number[] {

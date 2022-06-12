@@ -25,8 +25,8 @@ test ('transform to values', () => {
   const matrix = new MatrixMxN(3, 3).identity()
 
   matrix
-    .transform((row, col) => row + col)
-    .transform((_row, _col, value) => value + 2)
+    .transform((_value, row, col) => row + col)
+    .transform(value => value + 2)
   
   expect(matrix.getValue(0, 0)).toBe(2.0)
   expect(matrix.getValue(0, 1)).toBe(3.0)
@@ -86,6 +86,21 @@ test ('setting rows and columns', () => {
   expect(result.getValue(2, 1)).toBe(1)
 })
 
+test ('forDiagonal should iterate the diagonal values', () => {
+  const matrix = new MatrixMxN(3).setValuesRowOrder(
+    -1, 1, 2,
+    3, -2, 4,
+    5, 6, -3
+  )
+
+  const computefn = jest.fn()
+  matrix.forDiagonal(computefn)
+
+  expect(computefn).toBeCalledWith(-1, 0)
+  expect(computefn).toBeCalledWith(-2, 1)
+  expect(computefn).toBeCalledWith(-3, 2)
+})
+
 test ('combine partitioned matrices', () => {
   const lhs00 = new MatrixMxN(2, 3)
     .setRow(0, 2, -3,  1)
@@ -110,13 +125,11 @@ test ('combine partitioned matrices', () => {
     .setPartition(0, 0, result00)
     .setPartition(2, 0, result10)
 
-  new MatrixMxN(3, 2).setValuesRowOrder(
+  expect(result).toEqual(new MatrixMxN(3, 2).setValuesRowOrder(
     -5, 4,
     -6, 2,
     2, 1,
-  ).forEach((row, column, expected) => {
-    expect(result.getValue(row, column)).toBe(expected)
-  })
+  ))
 })
 
 test ('transpose matrix', () => {
@@ -128,12 +141,10 @@ test ('transpose matrix', () => {
 
   const matrixT = MatrixFunc.transpose(matrix)
 
-  new MatrixMxN(2, 3).setValuesRowOrder(
+  expect(matrixT).toEqual(new MatrixMxN(2, 3).setValuesRowOrder(
     -5, 1, 0,
     2, -3, 4
-  ).forEach((row, column, expected) => {
-    expect(matrixT.getValue(row, column)).toBe(expected)
-  })
+  ))
 })
 
 test ('echelon example', () => {
@@ -146,13 +157,11 @@ test ('echelon example', () => {
   
   matrix.echelon()
 
-  new MatrixMxN(3, 6).setValuesRowOrder(
+  expect(matrix).toEqual(new MatrixMxN(3, 6).setValuesRowOrder(
     3, -9, 12, -9, 6, 15,
     0, 2, -4, 4, 2, -6,
     0, 0,  0, 0, 1, 4
-  ).forEach((row, column, expected) => {
-    expect(matrix.getValue(row, column)).toBe(expected)
-  })
+  ))
 })
 
 test ('echelon reduced example', () => {
@@ -165,13 +174,11 @@ test ('echelon reduced example', () => {
 
   matrix.echelonReduced()
 
-  new MatrixMxN(3, 6).setValuesRowOrder(
+  expect(matrix).toEqual(new MatrixMxN(3, 6).setValuesRowOrder(
     1, 0, -2, 3, 0, -24,
     0, 1, -2, 2, 0, -7,
     0, 0,  0, 0, 1, 4
-  ).forEach((row, column, expected) => {
-    expect(matrix.getValue(row, column)).toBe(expected)
-  })
+  ))
 })
 
 test ('echelon example to prepare for LU decomposition', () => {
@@ -184,14 +191,12 @@ test ('echelon example to prepare for LU decomposition', () => {
 
   matrix.echelon()
 
-  new MatrixMxN(4, 5).setValuesRowOrder(
+  expect(matrix).toEqual(new MatrixMxN(4, 5).setValuesRowOrder(
     2, 4, -1, 5, -2,
     0, 3, 1, 2, -3,
     0, 0, 0, 2, 1,
     0, 0, 0, 0, 5
-  ).forEach((row, column, expected) => {
-    expect(matrix.getValue(row, column)).toBe(expected)
-  })
+  ))
 })
 
 test ('echelon and echelonReduced example when last row becomes zero', () => {
@@ -204,14 +209,12 @@ test ('echelon and echelonReduced example when last row becomes zero', () => {
 
   matrix.echelon().echelonReduced()
 
-  new MatrixMxN(4, 5).setValuesRowOrder(
+  expect(matrix).toEqual(new MatrixMxN(4, 5).setValuesRowOrder(
     1, 0, 1, 0, 1,
     0, 1, -2, 0, 3,
     0, 0, 0, 1, -5,
     0, 0, 0, 0, 0,
-  ).forEach((row, column, expected) => {
-    expect(matrix.getValue(row, column)).toBe(expected)
-  })
+  ))
 })
 
 test ('echelon and echelonReduced example when top rob becomes zero', () => {
@@ -227,7 +230,7 @@ test ('echelon and echelonReduced example when top rob becomes zero', () => {
     1, 0, 0, -2, 2/3,
     0, 1, 0, -1, 2/3,
     0, 0, 1, 2, -1/3,
-  ).forEach((row, column, expected) => {
+  ).forEach((expected, row, column) => {
     const actual = matrix.getValue(row, column)
     const error = Math.abs(actual - expected)
     expect(error).toBeLessThanOrEqual(MatrixFunc.EPSILON)
@@ -244,13 +247,11 @@ test ('echelon and echelonReduced simple example', () => {
 
   matrix.echelon().echelonReduced()
 
-  new MatrixMxN(3, 3).setValuesRowOrder(
+  expect(matrix).toEqual(new MatrixMxN(3, 3).setValuesRowOrder(
     1, 0, 2,
     0, 1, 3,
     0, 0, 0,
-  ).forEach((row, column, expected) => {
-    expect(matrix.getValue(row, column)).toBe(expected)
-  })
+  ))
 })
 
 test ('echelonReduced example with decimal values', () => {
@@ -266,15 +267,13 @@ test ('echelonReduced example with decimal values', () => {
     .setColumn(3, 50, 30, 20)
     .echelon()
     .echelonReduced()
-    .transformColumn(3, (row, value) => Math.round(value))
+    .transformColumn(3, value => Math.round(value))
 
-  new MatrixMxN(3, 4).setValuesRowOrder(
+  expect(IminusC).toEqual(new MatrixMxN(3, 4).setValuesRowOrder(
     1, 0, 0, 226,
     0, 1, 0, 119,
     0, 0, 1, 78
-  ).forEach((row, column, expected) => {
-    expect(IminusC.getValue(row, column)).toBe(expected)
-  })
+  ))
 })
 
 test ('echelonReduced stress test', () => {
@@ -304,7 +303,7 @@ test ('echelonReduced stress test', () => {
     0, 0, 0, 0, 0, 1, 0, 329554.43,
     0, 0, 0, 0, 0, 0, 1, 13835.3378,
 
-  ).forEach((row, column, expected) => {
+  ).forEach((expected, row, column) => {
     const actual = Math.fround(result.getValue(row, column))
     expect(actual).toBe(expected)
   })
@@ -319,13 +318,11 @@ test ('echelonReduced ignores empty rows', () => {
 
   matrix.echelonReduced()
 
-  new MatrixMxN(3, 4).setValuesRowOrder(
+  expect(matrix).toEqual(new MatrixMxN(3, 4).setValuesRowOrder(
     1, 0, -5, 0,
     0, 1, 3, 0,
     0, 0, 0, 0
-  ).forEach((row, column, expected) => {
-    expect(matrix.getValue(row, column)).toBe(expected)
-  })
+  ))
 })
 
 test ('determinant of 2x2 matrix', () => {
@@ -382,7 +379,7 @@ test ('adjoint of a 3x3 matrix', () => {
     -2, 14, 4,
     3, -7, 1,
     5, -7, -3,
-  ).forEach((row, column, expected) => {
+  ).forEach((expected, row, column) => {
     const actual = adjointMatrix.getValue(row, column)
     const error = Math.abs(actual - expected)
     expect(error).toBeLessThanOrEqual(MatrixFunc.EPSILON)
@@ -402,7 +399,7 @@ test ('inverse of a 3x3 matrix', () => {
     -1/7,    1,   2/7,
     3/14, -1/2,  1/14,
     5/14, -1/2, -3/14,
-  ).forEach((row, column, expected) => {
+  ).forEach((expected, row, column) => {
     const actual = matrixInversed.getValue(row, column)
     const error = Math.abs(actual - expected)
     expect(error).toBeLessThanOrEqual(MatrixFunc.EPSILON)
@@ -423,7 +420,7 @@ test ('changeOfCoordiantes with 2x2 matrices', () => {
 
   // Verify we can multiply the matrix and get the "from"
   // matrix back.
-  MatrixFunc.multiply(to, matrix).forEach((row, column, expected) => {
+  MatrixFunc.multiply(to, matrix).forEach((expected, row, column) => {
     expect(from.getValue(row, column)).toBe(expected)
   })
 })
@@ -439,7 +436,7 @@ test ('steadyState vector', () => {
   new MatrixMxN(2, 1).setValuesRowOrder(
     3 / 7,
     4 / 7,
-  ).forEach((row, column, expected) => {
+  ).forEach((expected, row, column) => {
     const actual = steadyStateVector.getValue(row, column)
     const error = Math.abs(actual - expected)
     expect(error).toBeLessThanOrEqual(MatrixFunc.EPSILON)
@@ -459,7 +456,7 @@ test ('steadyState vector', () => {
     9 / 28,
     15 / 28,
     4 / 28
-  ).forEach((row, column, expected) => {
+  ).forEach((expected, row, column) => {
     const actual = steadyStateVector.getValue(row, column)
     const error = Math.abs(actual - expected)
     expect(error).toBeLessThanOrEqual(MatrixFunc.EPSILON)
@@ -477,7 +474,7 @@ test ('steadyState vector multplies from original', () => {
   const steadyStateVector = MatrixFunc.steadyState(matrix)
   const nextStateVector = MatrixFunc.multiply(matrix, steadyStateVector)
 
-  steadyStateVector.forEach((row, column, expected) => {
+  steadyStateVector.forEach((expected, row, column) => {
     const actual = nextStateVector.getValue(row, column)
     const error = Math.abs(actual - expected)
     expect(error).toBeLessThanOrEqual(MatrixFunc.EPSILON)
