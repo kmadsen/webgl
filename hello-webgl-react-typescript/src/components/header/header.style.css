@@ -1,0 +1,22 @@
+.header {
+  background-color: aliceblue;
+  height: 4rem;
+}
+
+.options {
+  transition: background 400ms;
+  width: 10%;
+  height: 100%;
+  color: white;
+  background-color: purple;
+  display: inline-block;
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.5rem;
+  text-decoration: none;
+  text-align: center;
+  outline: 0;
+  border: 0;
+  border-radius: 0.25rem;
+  box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}

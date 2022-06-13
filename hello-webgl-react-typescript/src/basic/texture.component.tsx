@@ -3,7 +3,7 @@ import './basic.component.css';
 import TextureRenderer from './texture.renderer';
 import { CanvasViewTarget } from './viewtarget';
 import { mat4, vec2 } from 'gl-matrix';
-import ModelTrackMouse from './model.trackmouse';
+import TrackGestures from './model.trackmouse';
 
 const TextureComponent = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -29,7 +29,7 @@ const TextureComponent = () => {
     }
 
     const modelMat4 = mat4.create();
-    const trackMouse = new ModelTrackMouse(canvas)
+    const trackMouse = new TrackGestures(canvas)
     const canvasViewTarget = new CanvasViewTarget(gl, canvas);
     const renderer = new TextureRenderer(gl, canvasViewTarget);
 
