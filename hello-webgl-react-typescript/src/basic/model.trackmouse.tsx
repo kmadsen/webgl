@@ -11,7 +11,6 @@ function touchPosition(canvas: HTMLCanvasElement, event: TouchEvent): vec2 {
   return [touch.clientX - rect.left, touch.clientY - rect.top]
 }
 
-
 class TrackGestures {
 
   private mouseDownPosition: vec2 | null = null
